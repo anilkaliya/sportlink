@@ -1,0 +1,32 @@
+.successRoot {
+  background: var(--reg-bg);
+  color: var(--reg-ink);
+  font-family: var(--font-body);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+.successNav {
+  padding: 16px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--reg-border);
+  background: rgba(244,243,238,0.9);
+  backdrop-filter: blur(12px);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+.successLogo {
+  font-family: var(--font-display);
+  font-size: 24px;
+  letter-spacing: 3px;
+  color: var(--reg-ink);
+  text-decoration: none;
+}
+.successLogoAccent { color: var(--reg-accent-dk); }
+.successNavRight {
+  font-size: 13px;
+  color: var(--reg-muted);
+}
