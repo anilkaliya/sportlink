@@ -26,5 +26,11 @@ export const userApi = {
     apiCall<{ data: UserResponse }>(`/user/register`, { method: 'POST', body: payload }),
 
   login: (payload: LoginPayload) =>
-    apiCall<{ data: UserResponse }>(`/user/login`, { method: 'POST', body: payload }),
+    apiCall<{ data: UserResponse; accessToken: string }>(`/user/login`, { method: 'POST', body: payload }),
+
+  refresh: () =>
+    apiCall<{ accessToken: string }>(`/user/refresh`, { method: 'POST' }),
+
+  logout: () =>
+    apiCall<{ success: boolean }>(`/user/logout`, { method: 'POST' }),
 }

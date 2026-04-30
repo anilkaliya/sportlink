@@ -43,6 +43,7 @@ function LeftPanel() {
 export function SignInPage() {
   const navigate = useNavigate()
   const setAuthenticated = useAuthStore(s => s.setAuthenticated)
+  const setAccessToken = useAuthStore(s => s.setAccessToken)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPw, setShowPw] = useState(false)
@@ -55,18 +56,17 @@ export function SignInPage() {
     setLoading(true)
     try {
       const res = await userApi.login({ email, password })
-      const { onboarding_complete, onboarding_step, user_id,athlete_id } = res.data
-      
+      const { onboarding_step, user_id, athlete_id } = res.data
+
       setAuthenticated(true)
-      if (!onboarding_complete) {
-        if (onboarding_step === 0) {
-          sessionStorage.setItem('sl_user_id', user_id)
-          navigate('/register', { state: { step: 2 } })
-        } else {
-          navigate('/register', { state: { step: 3 } })
-        }
+      setAccessToken(res.accessToken)
+      if (athlete_id) {
+        navigate('/profile/' + athlete_id)
+      } else if (onboarding_step === 0) {
+        sessionStorage.setItem('sl_user_id', user_id)
+        navigate('/register', { state: { step: 2 } })
       } else {
-        navigate('/profile/'+athlete_id)
+        navigate('/register', { state: { step: 3 } })
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Sign in failed. Please try again.')

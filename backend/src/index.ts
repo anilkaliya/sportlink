@@ -4,15 +4,25 @@ import { runMigrations } from './db/migrate'
 import { athleteRoutes } from './modules/athlete/athlete.routes'
 import { userRoutes } from './modules/users/user.routes'
 import { lookupRoutes } from './modules/lookups/lookups.routes'
+import { authGuard } from './shared/auth-guard'
+
+// Paths that do not require a valid access token
+const PUBLIC_PATHS = new Set([
+  '/api/user/register',
+  '/api/user/login',
+  '/api/user/refresh',
+  '/api/user/logout',
+  '/api/health',
+  '/api/sports',
+  '/api/tournaments',
+])
 
 await runMigrations()
 
 const app = new Elysia()
 
-  // ✅ THIS is the real fix
   .onRequest(({ request, set }) => {
-      console.log('Incoming:', request.method, request.url)
-
+    console.log('Incoming:', request.method, request.url)
     if (request.method === 'OPTIONS') {
       set.status = 204
       return ''
@@ -20,10 +30,16 @@ const app = new Elysia()
   })
   .use(cors({
     origin: 'http://localhost:5174',
-    allowedHeaders: ['*'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    credentials: true,
   }))
   .group('/api', group => group
+    .onBeforeHandle(({ request, headers, set }) => {
+      const { pathname } = new URL(request.url)
+      if (PUBLIC_PATHS.has(pathname)) return
+      return authGuard({ headers, set })
+    })
     .use(athleteRoutes)
     .use(userRoutes)
     .use(lookupRoutes)
@@ -31,4 +47,5 @@ const app = new Elysia()
   )
 
   .listen(3000)
-  console.log('Server running on http://localhost:3000')
+
+console.log('Server running on http://localhost:3000')

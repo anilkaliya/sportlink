@@ -10,10 +10,12 @@
   "dependencies": {
     "@elysiajs/cors": "^1.4.2",
     "elysia": "latest",
+    "jsonwebtoken": "^9.0.3",
     "kysely": "latest",
     "kysely-bun-sqlite": "latest"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "@types/jsonwebtoken": "^9.0.10"
   }
 }

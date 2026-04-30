@@ -97,6 +97,15 @@ interface AthleteSkillsTable {
   created_at: Generated<string>
 }
 
+// ── Auth tokens ────────────────────────────────────────────────────────────
+
+interface RefreshTokensTable {
+  token_hash: string
+  user_id: string
+  expires_at: string
+  created_at: string
+}
+
 // ── Database interface ─────────────────────────────────────────────────────
 
 export interface Database {
@@ -107,6 +116,7 @@ export interface Database {
   sports_passport: SportsPassportTable
   athlete_education: AthleteEducationTable
   athlete_skills: AthleteSkillsTable
+  refresh_tokens: RefreshTokensTable
 }
 
 // ── Per-table helper types ─────────────────────────────────────────────────

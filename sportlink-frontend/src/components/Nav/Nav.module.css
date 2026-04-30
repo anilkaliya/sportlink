@@ -65,6 +65,23 @@
 }
 .signIn:hover { border-color: var(--muted); }
 
+.logout {
+  padding: 8px 16px;
+  border-radius: 8px;
+  background: transparent;
+  border: 1px solid rgba(255, 76, 106, 0.4);
+  color: var(--accent2);
+  font-family: var(--font-body);
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.logout:hover:not(:disabled) {
+  background: rgba(255, 76, 106, 0.08);
+  border-color: var(--accent2);
+}
+.logout:disabled { opacity: 0.5; cursor: not-allowed; }
+
 .joinFree {
   padding: 8px 16px;
   border-radius: 8px;

@@ -80,6 +80,16 @@ export async function setOnboardingComplete(user_id: string): Promise<void> {
     .execute()
 }
 
+export async function getUserById(userId: string): Promise<UserResponse> {
+  const user = await db
+    .selectFrom('users')
+    .selectAll()
+    .where('user_id', '=', userId)
+    .executeTakeFirstOrThrow()
+
+  return toUserResponse(user)
+}
+
 export async function getAthleteByUserId(id: string) {
   const profile = await db
     .selectFrom('athlete_profiles')
@@ -88,7 +98,7 @@ export async function getAthleteByUserId(id: string) {
     .executeTakeFirst()
 
   if (!profile) {
-    throw new Error('ATHLETE_PROFILE_NOT_FOUND')
+    return null
   }
   return profile.athlete_id
 }

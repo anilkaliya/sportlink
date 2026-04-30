@@ -1,4 +1,12 @@
+import { useAuthStore } from '../stores/authStore'
+
 const BASE_URL = import.meta.env['VITE_API_URL'] ?? '/api'
+
+// Messages sent by the server-side auth guard (not login failures)
+const AUTH_GUARD_MESSAGES = new Set([
+  'Missing authorization header',
+  'Invalid or expired token',
+])
 
 type ApiError = {
   message?: string
@@ -26,10 +34,13 @@ export async function apiCall<T>(
       ? (options!.body as any).payload
       : options?.body
 
+  const accessToken = useAuthStore.getState().accessToken
   const res = await fetch(`${BASE_URL}${path}`, {
     method,
+    credentials: 'include',
     headers: {
       ...(hasBody ? { 'Content-Type': 'application/json' } : {}),
+      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       ...(options?.headers || {}),
     },
     body: hasBody ? JSON.stringify(normalizedBody) : undefined,
@@ -45,7 +56,14 @@ export async function apiCall<T>(
 
   if (!res.ok) {
     const err = data as ApiError
-    throw new Error(err?.message || `Request failed (${res.status})`)
+    const message = err?.message ?? `Request failed (${res.status})`
+
+    if (res.status === 401 && AUTH_GUARD_MESSAGES.has(message)) {
+      useAuthStore.getState().clearAuth()
+      window.location.replace('/signin')
+    }
+
+    throw new Error(message)
   }
 
   return data as T
