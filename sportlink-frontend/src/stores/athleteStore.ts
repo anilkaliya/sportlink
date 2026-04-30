@@ -13,6 +13,10 @@ interface AthleteState {
     skills: Skill[]
   }) => void
   clearAthlete: () => void
+  addPassportEntry: (entry: PassportEntry) => void
+  addSkills: (skills: Skill[]) => void
+  addEducation: (edu: EducationEntry) => void
+  updateEducation: (edu: EducationEntry) => void
 }
 
 export const useAthleteStore = create<AthleteState>(set => ({
@@ -22,4 +26,8 @@ export const useAthleteStore = create<AthleteState>(set => ({
   skills: [],
   setAthleteData: data => set(data),
   clearAthlete: () => set({ profile: null, passport: [], education: [], skills: [] }),
+  addPassportEntry: entry => set(s => ({ passport: [entry, ...s.passport] })),
+  addSkills: skills => set(s => ({ skills: [...s.skills, ...skills] })),
+  addEducation: edu => set(s => ({ education: [...s.education, edu] })),
+  updateEducation: edu => set(s => ({ education: s.education.map(e => e.education_id === edu.education_id ? edu : e) })),
 }))

@@ -1,5 +1,8 @@
 import { apiCall } from './client'
-import type { AthleteFullProfile, PassportEntry, Skill } from '../types/athlete'
+import type {
+  AthleteFullProfile, PassportEntry, Skill, EducationEntry,
+  CreatePassportEntryInput, CreateEducationInput, SkillCategory,
+} from '../types/athlete'
 
 export interface CreateAthletePayload {
   user_id: string
@@ -37,6 +40,15 @@ export const athleteApi = {
   create: (payload: CreateAthletePayload) =>
     apiCall<{ data: { athlete_id: string } }>('/athletes', { method: 'POST', body: payload }),
 
-  addPassportEntry: (athleteId: string, payload: AddPassportPayload) =>
-    apiCall<unknown>(`/athletes/${athleteId}/passport`, { method: 'POST', body: payload }),
+  addPassportEntry: (athleteId: string, payload: CreatePassportEntryInput) =>
+    apiCall<{ data: PassportEntry }>(`/athletes/${athleteId}/passport`, { method: 'POST', body: payload }),
+
+  addSkills: (athleteId: string, skills: { skill_name: string; category: SkillCategory }[]) =>
+    apiCall<{ data: Skill[] }>(`/athletes/${athleteId}/skills`, { method: 'POST', body: { skills } }),
+
+  addEducation: (athleteId: string, payload: CreateEducationInput) =>
+    apiCall<{ data: EducationEntry }>(`/athletes/${athleteId}/education`, { method: 'POST', body: payload }),
+
+  updateEducation: (athleteId: string, educationId: string, payload: CreateEducationInput) =>
+    apiCall<{ data: EducationEntry }>(`/athletes/${athleteId}/education/${educationId}`, { method: 'PATCH', body: payload }),
 }

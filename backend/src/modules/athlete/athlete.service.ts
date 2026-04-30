@@ -3,7 +3,7 @@ import { generateId } from '../../shared/id'
 import type { UpdateableAthleteProfile } from '../../db/schema'
 import type {
   CreateAthleteInput, UpdateAthleteInput,
-  CreatePassportEntryInput, SkillInput,
+  CreatePassportEntryInput, SkillInput, EducationInput,
 } from './athlete.types'
 import { incrementOnboardingStep, setOnboardingComplete } from '../users/user.service'
 
@@ -158,15 +158,52 @@ export async function getSkills(athleteId: string) {
   return db.selectFrom('athlete_skills').selectAll().where('athlete_id', '=', athleteId).execute()
 }
 
-export async function addSkill(athleteId: string, data: SkillInput) {
+export async function addSkills(athleteId: string, skills: SkillInput[]) {
+  const rows = skills.map(s => ({
+    skill_id: generateId(),
+    athlete_id: athleteId,
+    skill_name: s.skill_name,
+    category: s.category ?? 'sport_specific' as const,
+  }))
   return db.insertInto('athlete_skills')
-    .values({
-      skill_id: generateId(),
-      athlete_id: athleteId,
-      skill_name: data.skill_name,
-      category: data.category ?? 'sport_specific',
-    })
+    .values(rows)
     .onConflict(oc => oc.columns(['athlete_id', 'skill_name']).doNothing())
     .returningAll()
+    .execute()
+}
+
+export async function updateEducation(educationId: string, athleteId: string, data: EducationInput) {
+  return db.updateTable('athlete_education')
+    .set({
+      institution_name: data.institution_name,
+      degree: data.degree ?? null,
+      field_of_study: data.field_of_study ?? null,
+      start_year: data.start_year ?? null,
+      end_year: data.end_year ?? null,
+      is_current: (data.is_current ?? (data.end_year == null ? 1 : 0)) as 0 | 1,
+    })
+    .where('education_id', '=', educationId)
+    .where('athlete_id', '=', athleteId)
+    .returningAll()
     .executeTakeFirst()
+}
+
+export async function getEducation(athleteId: string) {
+  return db.selectFrom('athlete_education').selectAll().where('athlete_id', '=', athleteId).execute()
+}
+
+export async function addEducation(athleteId: string, data: EducationInput) {
+  return db.insertInto('athlete_education')
+    .values({
+      education_id: generateId(),
+      athlete_id: athleteId,
+      institution_name: data.institution_name,
+      degree: data.degree ?? null,
+      field_of_study: data.field_of_study ?? null,
+      start_year: data.start_year ?? null,
+      end_year: data.end_year ?? null,
+      is_current: (data.is_current ?? (data.end_year == null ? 1 : 0)) as 0 | 1,
+    })
+    .returningAll()
+    .executeTakeFirstOrThrow()
 }

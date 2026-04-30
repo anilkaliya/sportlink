@@ -133,14 +133,10 @@ export const athleteRoutes = new Elysia({ prefix: '/athletes' })
     return { data }
   }, { params: t.Object({ id: t.String() }) })
 
-  // POST /athletes/:id/skills — add skill
+  // POST /athletes/:id/skills — add one or more skills
   .post('/:id/skills', async ({ params, body, set }) => {
     try {
-      const data = await service.addSkill(params.id, body)
-      if (!data) {
-        set.status = 409
-        return conflict('Athlete already has this skill')
-      }
+      const data = await service.addSkills(params.id, body.skills)
       set.status = 201
       return { data }
     } catch {
@@ -150,10 +146,59 @@ export const athleteRoutes = new Elysia({ prefix: '/athletes' })
   }, {
     params: t.Object({ id: t.String() }),
     body: t.Object({
-      skill_name: t.String({ minLength: 1 }),
-      category: t.Optional(t.Union([
-        t.Literal('sport_specific'), t.Literal('soft_skill'),
-        t.Literal('technical'), t.Literal('leadership'),
-      ])),
+      skills: t.Array(t.Object({
+        skill_name: t.String({ minLength: 1 }),
+        category: t.Optional(t.Union([
+          t.Literal('sport_specific'), t.Literal('soft_skill'),
+          t.Literal('technical'), t.Literal('leadership'),
+        ])),
+      }), { minItems: 1 }),
+    }),
+  })
+
+  // GET /athletes/:id/education
+  .get('/:id/education', async ({ params, set }) => {
+    const existing = await service.getAthleteById(params.id)
+    if (!existing) { set.status = 404; return notFound('Athlete') }
+    const data = await service.getEducation(params.id)
+    return { data }
+  }, { params: t.Object({ id: t.String() }) })
+
+  // POST /athletes/:id/education — add education entry
+  .post('/:id/education', async ({ params, body, set }) => {
+    try {
+      const data = await service.addEducation(params.id, body)
+      set.status = 201
+      return { data }
+    } catch {
+      set.status = 400
+      return validationError('Invalid athlete_id reference')
+    }
+  }, {
+    params: t.Object({ id: t.String() }),
+    body: t.Object({
+      institution_name: t.String({ minLength: 1 }),
+      degree: t.Optional(t.String()),
+      field_of_study: t.Optional(t.String()),
+      start_year: t.Optional(t.Number()),
+      end_year: t.Optional(t.Union([t.Number(), t.Null()])),
+      is_current: t.Optional(t.Union([t.Literal(0), t.Literal(1)])),
+    }),
+  })
+
+  // PATCH /athletes/:id/education/:educationId — update education entry
+  .patch('/:id/education/:educationId', async ({ params, body, set }) => {
+    const data = await service.updateEducation(params.educationId, params.id, body)
+    if (!data) { set.status = 404; return notFound('Education entry') }
+    return { data }
+  }, {
+    params: t.Object({ id: t.String(), educationId: t.String() }),
+    body: t.Object({
+      institution_name: t.String({ minLength: 1 }),
+      degree: t.Optional(t.String()),
+      field_of_study: t.Optional(t.String()),
+      start_year: t.Optional(t.Number()),
+      end_year: t.Optional(t.Union([t.Number(), t.Null()])),
+      is_current: t.Optional(t.Union([t.Literal(0), t.Literal(1)])),
     }),
   })

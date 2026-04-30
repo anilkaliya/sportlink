@@ -76,6 +76,30 @@ export interface AthleteFullProfile {
   }
 }
 
+// ── Inputs ────────────────────────────────────────────────────────────────
+
+export interface CreatePassportEntryInput {
+  sport_id: string
+  tournament_id?: string
+  tournament_name_override?: string
+  level_override?: SportLevel
+  year: number
+  medal?: Medal
+  notes?: string
+  is_personal_best?: 0 | 1
+  pb_value?: number
+  pb_unit?: PbUnit
+}
+
+export interface CreateEducationInput {
+  institution_name: string
+  degree?: string
+  field_of_study?: string
+  start_year?: number
+  end_year?: number | null
+  is_current?: 0 | 1
+}
+
 // ── Helpers ────────────────────────────────────────────────────────────────
 
 export function parseLanguages(csv: string | null): string[] {

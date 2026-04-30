@@ -48,6 +48,15 @@ export interface SkillInput {
   category?: 'sport_specific' | 'soft_skill' | 'technical' | 'leadership'
 }
 
+export interface EducationInput {
+  institution_name: string
+  degree?: string | null
+  field_of_study?: string | null
+  start_year?: number | null
+  end_year?: number | null
+  is_current?: 0 | 1
+}
+
 // ── Responses ──────────────────────────────────────────────────────────────
 
 export interface AthleteProfile {

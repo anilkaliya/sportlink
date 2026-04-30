@@ -1,9 +1,133 @@
+/* ── Header row ───────────────────────────────────────────────────────── */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
 .title {
   font-family: var(--font-display);
   font-size: 20px;
   letter-spacing: 2px;
   color: var(--text);
-  margin-bottom: 20px;
+  margin-bottom: 0;
+}
+
+.addBtn {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--accent);
+  background: transparent;
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  padding: 4px 12px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.addBtn:hover { background: rgba(232,255,60,0.08); }
+
+/* ── Inline slide-in form ─────────────────────────────────────────────── */
+.inlineForm {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+.inlineForm.open { max-height: 600px; }
+
+.formInner {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 20px;
+}
+
+.field { display: flex; flex-direction: column; gap: 4px; }
+
+.fieldRow {
+  display: flex;
+  gap: 12px;
+}
+.fieldRow .field { flex: 1; }
+
+.input {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 14px;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.15s;
+}
+.input:focus { outline: none; border-color: var(--accent); }
+.input option { background: var(--surface2); }
+
+.optionRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.optionBtn {
+  font-family: var(--font-body);
+  font-size: 13px;
+  padding: 5px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--muted);
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+.optionSelected {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(232,255,60,0.08);
+}
+
+.formActions {
+  display: flex;
+  gap: 8px;
+  padding-top: 4px;
+}
+
+.btnSave {
+  font-family: var(--font-body);
+  font-size: 14px;
+  background: var(--accent);
+  color: #0a0a0f;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 20px;
+  cursor: pointer;
+  font-weight: 600;
+}
+.btnSave:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.btnCancel {
+  font-family: var(--font-body);
+  font-size: 14px;
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 16px;
+  cursor: pointer;
+}
+.btnCancel:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.err {
+  font-size: 12px;
+  color: var(--accent2);
+}
+
+.apiErr {
+  font-size: 13px;
+  color: var(--accent2);
+  margin: 0;
 }
 
 .empty {
