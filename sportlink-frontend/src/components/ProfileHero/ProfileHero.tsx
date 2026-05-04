@@ -2,6 +2,8 @@ import styles from './ProfileHero.module.css'
 import type { AthleteProfile, PassportEntry } from '../../types/athlete'
 import { parseLanguages } from '../../types/athlete'
 import { deriveStats, formatPb } from '../../lib/stats'
+import { ConnectionButton } from '../ConnectionButton/ConnectionButton'
+import { useAuthStore } from '../../stores/authStore'
 
 interface StatCellProps {
   value: string
@@ -30,6 +32,7 @@ interface Props {
 }
 
 export function ProfileHero({ profile, passport }: Props) {
+  const currentUserId = useAuthStore(s => s.userId)
   const stats = deriveStats(passport)
   const languages = parseLanguages(profile.languages)
   const headline = profile.bio?.split('—')[0]?.trim() ?? profile.bio ?? ''
@@ -60,8 +63,7 @@ export function ProfileHero({ profile, passport }: Props) {
           </div>
 
           <div className={styles.actions}>
-            <button className={styles.btnOutline}>Connect</button>
-            <button className={styles.btnOutline}>Message</button>
+            <ConnectionButton targetUserId={profile.user_id} currentUserId={currentUserId ?? ''} />
             <button className={styles.btnMore}>⋮</button>
           </div>
         </div>

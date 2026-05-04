@@ -8,9 +8,10 @@ import styles from './SportsPassport.module.css'
 
 interface Props {
   entries: PassportEntryType[]
+  isOwner: boolean
 }
 
-export function SportsPassport({ entries }: Props) {
+export function SportsPassport({ entries, isOwner }: Props) {
   const [open, setOpen] = useState(false)
   const profile = useAthleteStore(s => s.profile)
   const addPassportEntry = useAthleteStore(s => s.addPassportEntry)
@@ -20,16 +21,18 @@ export function SportsPassport({ entries }: Props) {
     <Card>
       <div className={styles.header}>
         <h2 className={styles.title}>🛂 Sports Passport</h2>
-        <button className={styles.addBtn} onClick={() => setOpen(v => !v)}>+ Add Entry</button>
+        {isOwner && <button className={styles.addBtn} onClick={() => setOpen(v => !v)}>+ Add Entry</button>}
       </div>
-      <div className={`${styles.inlineForm} ${open ? styles.open : ''}`}>
-        <AddPassportForm
-          athleteId={profile?.athlete_id ?? ''}
-          sportId={profile?.primary_sport_id ?? null}
-          onSuccess={entry => { addPassportEntry(entry); setOpen(false) }}
-          onCancel={() => setOpen(false)}
-        />
-      </div>
+      {isOwner && (
+        <div className={`${styles.inlineForm} ${open ? styles.open : ''}`}>
+          <AddPassportForm
+            athleteId={profile?.athlete_id ?? ''}
+            sportId={profile?.primary_sport_id ?? null}
+            onSuccess={entry => { addPassportEntry(entry); setOpen(false) }}
+            onCancel={() => setOpen(false)}
+          />
+        </div>
+      )}
       {sorted.length === 0
         ? <p className={styles.empty}>No passport entries yet.</p>
         : <div className={styles.list}>

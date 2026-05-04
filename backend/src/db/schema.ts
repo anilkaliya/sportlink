@@ -97,6 +97,24 @@ interface AthleteSkillsTable {
   created_at: Generated<string>
 }
 
+// ── Connections ────────────────────────────────────────────────────────────
+
+interface ConnectionRequestsTable {
+  request_id:  string
+  sender_id:   string
+  receiver_id: string
+  status: 'pending' | 'accepted' | 'rejected' | 'cancelled'
+  created_at:  Generated<string>
+  updated_at:  Generated<string>
+}
+
+interface ConnectionsTable {
+  connection_id: string
+  user_id_a:     string   // lexicographically smaller UUID
+  user_id_b:     string
+  created_at:    Generated<string>
+}
+
 // ── Auth tokens ────────────────────────────────────────────────────────────
 
 interface RefreshTokensTable {
@@ -117,6 +135,8 @@ export interface Database {
   athlete_education: AthleteEducationTable
   athlete_skills: AthleteSkillsTable
   refresh_tokens: RefreshTokensTable
+  connection_requests: ConnectionRequestsTable
+  connections: ConnectionsTable
 }
 
 // ── Per-table helper types ─────────────────────────────────────────────────
@@ -141,3 +161,6 @@ export type AthleteEducationRow = Selectable<AthleteEducationTable>
 
 export type AthleteSkillRow = Selectable<AthleteSkillsTable>
 export type InsertableAthleteSkill = Insertable<AthleteSkillsTable>
+
+export type ConnectionRequestRow = Selectable<ConnectionRequestsTable>
+export type ConnectionRow = Selectable<ConnectionsTable>

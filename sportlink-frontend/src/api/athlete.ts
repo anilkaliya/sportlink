@@ -2,7 +2,26 @@ import { apiCall } from './client'
 import type {
   AthleteFullProfile, PassportEntry, Skill, EducationEntry,
   CreatePassportEntryInput, CreateEducationInput, SkillCategory,
+  AthleteListItem, AthleteFilters,
 } from '../types/athlete'
+
+export interface ProfileStatusResponse {
+  completeness: string
+  hasEducation: boolean
+  hasSkills: boolean
+  hasPassport: boolean
+}
+
+export interface PendingAction {
+  type: string
+  details: string
+  profile_stats?: string
+}
+
+export interface PendingActionsResponse {
+  actions: PendingAction[]
+  profile_stats: string
+}
 
 export interface CreateAthletePayload {
   user_id: string
@@ -27,7 +46,22 @@ export interface AddPassportPayload {
   notes?: string
 }
 
+function buildQuery(filters?: AthleteFilters): string {
+  if (!filters) return ''
+  const params = new URLSearchParams()
+  if (filters.sport) params.set('sport', filters.sport)
+  if (filters.level) params.set('level', filters.level)
+  if (filters.city) params.set('city', filters.city)
+  if (filters.search) params.set('search', filters.search)
+  if (filters.page) params.set('page', String(filters.page))
+  const qs = params.toString()
+  return qs ? `?${qs}` : ''
+}
+
 export const athleteApi = {
+  getAll: (filters?: AthleteFilters) =>
+    apiCall<{ data: AthleteListItem[] }>(`/athletes${buildQuery(filters)}`),
+
   getById: (id: string) =>
     apiCall<AthleteFullProfile>(`/athletes/${id}`),
 
@@ -51,4 +85,10 @@ export const athleteApi = {
 
   updateEducation: (athleteId: string, educationId: string, payload: CreateEducationInput) =>
     apiCall<{ data: EducationEntry }>(`/athletes/${athleteId}/education/${educationId}`, { method: 'PATCH', body: payload }),
+
+  getPendingActions: (athleteId: string) =>
+    apiCall<PendingActionsResponse>(`/athletes/${athleteId}/pending-actions`),
+
+  getProfileStatus: (athleteId: string) =>
+    apiCall<ProfileStatusResponse>(`/athletes/${athleteId}/profile-status`),
 }

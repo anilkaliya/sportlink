@@ -192,6 +192,72 @@ export async function getEducation(athleteId: string) {
   return db.selectFrom('athlete_education').selectAll().where('athlete_id', '=', athleteId).execute()
 }
 
+// ── Pending Actions ───────────────────────────────────────────────────────
+export async function  getProfilePercent(athleteId:string){
+   const [educationRows, skillRows, passportRows] = await Promise.all([
+    db.selectFrom('athlete_education').select('education_id').where('athlete_id', '=', athleteId).execute(),
+    db.selectFrom('athlete_skills').select('skill_id').where('athlete_id', '=', athleteId).execute(),
+    db.selectFrom('sports_passport').select('passport_id').where('athlete_id', '=', athleteId).execute(),
+  ])
+
+  const hasEducation = educationRows.length > 0
+  const hasSkills = skillRows.length > 0
+  const hasPassport = passportRows.length > 0
+
+  // Profile stats: passport = 50%, education = 25%, skills = 25%
+  let profilePercent = 0
+  if (hasPassport) profilePercent += 50
+  if (hasEducation) profilePercent += 25
+  if (hasSkills) profilePercent += 25
+
+  return {profilePercent,hasEducation, hasSkills, hasPassport}
+
+}
+
+export async function getPendingActions(athleteId: string) {
+  const profile = await db
+    .selectFrom('athlete_profiles')
+    .select(['athlete_id', 'user_id'])
+    .where('athlete_id', '=', athleteId)
+    .executeTakeFirst()
+
+  if (!profile) return { error: 'NOT_FOUND' as const }
+
+  // Check which sections have data
+ 
+  const actions: Array<{ type: string; details: string; profile_stats?: string }> = []
+  const {profilePercent, hasEducation, hasSkills, hasPassport} = await getProfilePercent(profile.athlete_id)
+  // Profile completion action
+  if (profilePercent < 100) {
+    const missing: string[] = []
+    if (!hasEducation) missing.push('education')
+    if (!hasSkills) missing.push('skills')
+    if (!hasPassport) missing.push('sports passport')
+    actions.push({
+      type: 'profile',
+      details: `add ${missing.join(', ')}`,
+      profile_stats: `${profilePercent}%`,
+    })
+  }
+
+  // Pending connection requests
+  const pendingRequests = await db
+    .selectFrom('connection_requests')
+    .select('request_id')
+    .where('receiver_id', '=', profile.user_id)
+    .where('status', '=', 'pending')
+    .execute()
+
+  if (pendingRequests.length > 0) {
+    actions.push({
+      type: 'requests',
+      details: `${pendingRequests.length} pending request${pendingRequests.length > 1 ? 's' : ''}`,
+    })
+  }
+
+  return { actions, profile_stats: `${profilePercent}%` }
+}
+
 export async function addEducation(athleteId: string, data: EducationInput) {
   return db.insertInto('athlete_education')
     .values({

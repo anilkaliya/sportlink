@@ -1,3 +1,4 @@
+import { getAccessTokenFromLocalStorage } from '../lib/auth'
 import { useAuthStore } from '../stores/authStore'
 
 const BASE_URL = import.meta.env['VITE_API_URL'] ?? '/api'
@@ -34,7 +35,7 @@ export async function apiCall<T>(
       ? (options!.body as any).payload
       : options?.body
 
-  const accessToken = useAuthStore.getState().accessToken
+  const accessToken = getAccessTokenFromLocalStorage()
   const res = await fetch(`${BASE_URL}${path}`, {
     method,
     credentials: 'include',

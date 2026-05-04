@@ -17,3 +17,8 @@ export const serverError = (detail: string) => ({
   error: 'SERVER_ERROR' as const,
   message: detail,
 })
+
+export const forbidden = (detail: string) => ({
+  error: 'FORBIDDEN' as const,
+  message: detail,
+})

@@ -4,6 +4,7 @@ import { runMigrations } from './db/migrate'
 import { athleteRoutes } from './modules/athlete/athlete.routes'
 import { userRoutes } from './modules/users/user.routes'
 import { lookupRoutes } from './modules/lookups/lookups.routes'
+import { connectionRoutes } from './modules/connections/connections.routes'
 import { authGuard } from './shared/auth-guard'
 
 // Paths that do not require a valid access token
@@ -43,6 +44,7 @@ const app = new Elysia()
     .use(athleteRoutes)
     .use(userRoutes)
     .use(lookupRoutes)
+    .use(connectionRoutes)
     .get('/health', () => ({ status: 'ok' }))
   )
 

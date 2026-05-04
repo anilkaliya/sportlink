@@ -5,6 +5,8 @@ import { sql, type Kysely } from 'kysely'
 const NOW = sql`(strftime('%Y-%m-%dT%H:%M:%SZ','now'))`
 
 export async function up(db: Kysely<any>): Promise<void> {
+  // ── Lookup tables ──────────────────────────────────────────────────────────
+
   await db.schema.createTable('sports').ifNotExists()
     .addColumn('sport_id', 'text', c => c.primaryKey())
     .addColumn('sport_name', 'text', c => c.notNull().unique())
@@ -29,6 +31,8 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addCheckConstraint('ck_tournaments_active', sql`is_active IN (0,1)`)
     .execute()
 
+  // ── Auth ───────────────────────────────────────────────────────────────────
+
   await db.schema.createTable('users').ifNotExists()
     .addColumn('user_id', 'text', c => c.primaryKey())
     .addColumn('email', 'text', c => c.notNull().unique())
@@ -42,6 +46,15 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addCheckConstraint('ck_users_role', sql`role IN ('athlete','recruiter','admin')`)
     .addCheckConstraint('ck_users_active', sql`is_active IN (0,1)`)
     .execute()
+
+  await db.schema.createTable('refresh_tokens').ifNotExists()
+    .addColumn('token_hash', 'text', c => c.primaryKey().notNull())
+    .addColumn('user_id', 'text', c => c.notNull().references('users.user_id').onDelete('cascade'))
+    .addColumn('expires_at', 'text', c => c.notNull())
+    .addColumn('created_at', 'text', c => c.notNull())
+    .execute()
+
+  // ── Core profile ───────────────────────────────────────────────────────────
 
   await db.schema.createTable('athlete_profiles').ifNotExists()
     .addColumn('athlete_id', 'text', c => c.primaryKey())
@@ -131,19 +144,54 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addUniqueConstraint('uq_athlete_skill', ['athlete_id', 'skill_name'])
     .execute()
 
-  // Indexes
+  // ── Connections ────────────────────────────────────────────────────────────
+
+  // One row per directed request. UNIQUE(sender_id, receiver_id) prevents
+  // duplicate requests in the same direction.
+  await db.schema.createTable('connection_requests').ifNotExists()
+    .addColumn('request_id',  'text', c => c.primaryKey())
+    .addColumn('sender_id',   'text', c => c.notNull().references('users.user_id'))
+    .addColumn('receiver_id', 'text', c => c.notNull().references('users.user_id'))
+    .addColumn('status', 'text', c => c.notNull().defaultTo('pending'))
+    .addColumn('created_at', 'text', c => c.notNull().defaultTo(NOW))
+    .addColumn('updated_at', 'text', c => c.notNull().defaultTo(NOW))
+    .addCheckConstraint('ck_cr_status',  sql`status IN ('pending','accepted','rejected','cancelled')`)
+    .addCheckConstraint('ck_cr_no_self', sql`sender_id != receiver_id`)
+    .addUniqueConstraint('uq_cr_pair',   ['sender_id', 'receiver_id'])
+    .execute()
+
+  // Accepted connections stored as an ordered pair so (A,B) == (B,A).
+  // user_id_a is always the lexicographically smaller UUID.
+  await db.schema.createTable('connections').ifNotExists()
+    .addColumn('connection_id', 'text', c => c.primaryKey())
+    .addColumn('user_id_a', 'text', c => c.notNull().references('users.user_id'))
+    .addColumn('user_id_b', 'text', c => c.notNull().references('users.user_id'))
+    .addColumn('created_at', 'text', c => c.notNull().defaultTo(NOW))
+    .addCheckConstraint('ck_conn_order', sql`user_id_a < user_id_b`)
+    .addUniqueConstraint('uq_conn_pair', ['user_id_a', 'user_id_b'])
+    .execute()
+
+  // ── Indexes ────────────────────────────────────────────────────────────────
+
   await db.schema.createIndex('idx_ap_user_id').ifNotExists().on('athlete_profiles').column('user_id').execute()
   await db.schema.createIndex('idx_ap_open_to_work').ifNotExists().on('athlete_profiles').column('is_open_to_work').execute()
   await db.schema.createIndex('idx_sp_athlete_year').ifNotExists().on('sports_passport').columns(['athlete_id', 'year']).execute()
   await db.schema.createIndex('idx_vb_athlete_id').ifNotExists().on('verification_badges').column('athlete_id').execute()
   await db.schema.createIndex('idx_edu_athlete_id').ifNotExists().on('athlete_education').column('athlete_id').execute()
   await db.schema.createIndex('idx_skills_athlete_id').ifNotExists().on('athlete_skills').column('athlete_id').execute()
+  await db.schema.createIndex('idx_rt_user_id').ifNotExists().on('refresh_tokens').column('user_id').execute()
+  await db.schema.createIndex('idx_cr_sender').ifNotExists().on('connection_requests').column('sender_id').execute()
+  await db.schema.createIndex('idx_cr_receiver').ifNotExists().on('connection_requests').column('receiver_id').execute()
+  await db.schema.createIndex('idx_conn_user_a').ifNotExists().on('connections').column('user_id_a').execute()
+  await db.schema.createIndex('idx_conn_user_b').ifNotExists().on('connections').column('user_id_b').execute()
 }
 
 export async function down(db: Kysely<any>): Promise<void> {
   for (const table of [
+    'connections', 'connection_requests',
     'athlete_skills', 'athlete_education', 'verification_badges',
-    'sports_passport', 'athlete_profiles', 'users', 'tournaments', 'sports',
+    'sports_passport', 'athlete_profiles',
+    'refresh_tokens', 'users', 'tournaments', 'sports',
   ]) {
     await db.schema.dropTable(table).ifExists().execute()
   }

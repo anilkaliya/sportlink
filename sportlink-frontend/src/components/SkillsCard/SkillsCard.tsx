@@ -8,9 +8,10 @@ import styles from './SkillsCard.module.css'
 
 interface Props {
   skills: Skill[]
+  isOwner: boolean
 }
 
-export function SkillsCard({ skills }: Props) {
+export function SkillsCard({ skills, isOwner }: Props) {
   const [open, setOpen] = useState(false)
   const profile = useAthleteStore(s => s.profile)
   const addSkills = useAthleteStore(s => s.addSkills)
@@ -19,15 +20,17 @@ export function SkillsCard({ skills }: Props) {
     <Card>
       <div className={styles.header}>
         <h2 className={styles.title}>⚡ Skills</h2>
-        <button className={styles.addBtn} onClick={() => setOpen(v => !v)}>+ Add</button>
+        {isOwner && <button className={styles.addBtn} onClick={() => setOpen(v => !v)}>+ Add</button>}
       </div>
-      <div className={`${styles.inlineForm} ${open ? styles.open : ''}`}>
-        <AddSkillForm
-          athleteId={profile?.athlete_id ?? ''}
-          onSuccess={skills => { addSkills(skills); setOpen(false) }}
-          onCancel={() => setOpen(false)}
-        />
-      </div>
+      {isOwner && (
+        <div className={`${styles.inlineForm} ${open ? styles.open : ''}`}>
+          <AddSkillForm
+            athleteId={profile?.athlete_id ?? ''}
+            onSuccess={skills => { addSkills(skills); setOpen(false) }}
+            onCancel={() => setOpen(false)}
+          />
+        </div>
+      )}
       {skills.length === 0
         ? <p className={styles.empty}>No skills listed yet.</p>
         : <div className={styles.tags}>

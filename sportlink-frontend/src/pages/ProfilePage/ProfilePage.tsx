@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { athleteApi } from '../../api/athlete'
 import { useAthleteStore } from '../../stores/athleteStore'
+import { useAuthStore } from '../../stores/authStore'
 import { ProfileHero } from '../../components/ProfileHero/ProfileHero'
 import { SportsPassport } from '../../components/SportsPassport/SportsPassport'
 import { SkillsCard } from '../../components/SkillsCard/SkillsCard'
@@ -19,6 +20,7 @@ export function ProfilePage() {
   const passport  = useAthleteStore(s => s.passport)
   const education = useAthleteStore(s => s.education)
   const skills    = useAthleteStore(s => s.skills)
+  const currentUserId = useAuthStore(s => s.userId)
 
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ['athlete', id],
@@ -37,16 +39,18 @@ export function ProfilePage() {
   if (isError)   return <ErrorMessage message={error instanceof Error ? error.message : 'Failed to load profile'} />
   if (!profile)  return null
 
+  const isOwner = currentUserId != null && currentUserId === profile.user_id
+
   return (
     <main className={styles.page}>
       <ProfileHero profile={profile} passport={passport} />
       <div className={styles.grid}>
         <div className={styles.main}>
-          <SportsPassport entries={passport} />
-          <SkillsCard skills={skills} />
+          <SportsPassport entries={passport} isOwner={isOwner} />
+          <SkillsCard skills={skills} isOwner={isOwner} />
         </div>
         <div className={styles.side}>
-          <EducationCard education={education} />
+          <EducationCard education={education} isOwner={isOwner} />
         </div>
       </div>
     </main>

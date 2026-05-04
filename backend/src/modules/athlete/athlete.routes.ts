@@ -186,6 +186,16 @@ export const athleteRoutes = new Elysia({ prefix: '/athletes' })
     }),
   })
 
+  // GET /athletes/:id/pending-actions — profile completion + pending requests
+  .get('/:id/pending-actions', async ({ params, set }) => {
+    const result = await service.getPendingActions(params.id)
+    if ('error' in result) {
+      set.status = 404
+      return notFound('Athlete')
+    }
+    return result
+  }, { params: t.Object({ id: t.String() }) })
+
   // PATCH /athletes/:id/education/:educationId — update education entry
   .patch('/:id/education/:educationId', async ({ params, body, set }) => {
     const data = await service.updateEducation(params.educationId, params.id, body)
@@ -202,3 +212,9 @@ export const athleteRoutes = new Elysia({ prefix: '/athletes' })
       is_current: t.Optional(t.Union([t.Literal(0), t.Literal(1)])),
     }),
   })
+
+  .get('/:id/profile-status', async ({ params, set }) => {
+    const data = await service.getProfilePercent(params.id)
+    if (!data) { set.status = 404; return notFound('Athlete') }
+    return { completeness: data.profilePercent, hasEducation: data.hasEducation, hasSkills: data.hasSkills, hasPassport: data.hasPassport }
+  }, { params: t.Object({ id: t.String() }) })    

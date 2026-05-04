@@ -76,6 +76,36 @@ export interface AthleteFullProfile {
   }
 }
 
+// Lighter shape for browse/list view
+export interface AthleteListItem {
+  athlete_id: string
+  user_id: string
+  full_name: string
+  profile_photo_url: string | null
+  primary_sport_id: string | null
+  city: string | null
+  state: string | null
+  bio: string | null
+}
+
+export interface AthleteFilters {
+  sport?: string
+  level?: string
+  city?: string
+  search?: string
+  page?: number
+}
+
+// Shape for connection request list items (mirrors connection_requests table)
+export interface ConnectionRequest {
+  request_id: string
+  sender_id: string
+  receiver_id: string
+  status: 'pending' | 'accepted' | 'rejected' | 'cancelled'
+  created_at: string
+  updated_at: string
+}
+
 // ── Inputs ────────────────────────────────────────────────────────────────
 
 export interface CreatePassportEntryInput {

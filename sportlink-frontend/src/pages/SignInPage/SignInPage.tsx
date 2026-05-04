@@ -5,6 +5,8 @@ import { useAuthStore } from '../../stores/authStore'
 import { AuthWizard } from '../../components/AuthWizard/AuthWizard'
 import f from '../../components/AuthWizard/authForm.module.css'
 import styles from './SignInPage.module.css'
+import { setAccessTokenInLocalStorage } from '../../lib/auth'
+import { useAthleteStore } from '../../stores/athleteStore'
 
 function LeftPanel() {
   return (
@@ -44,6 +46,8 @@ export function SignInPage() {
   const navigate = useNavigate()
   const setAuthenticated = useAuthStore(s => s.setAuthenticated)
   const setAccessToken = useAuthStore(s => s.setAccessToken)
+  const setUserId = useAuthStore(s => s.setUserId)
+  const setAthleteId = useAthleteStore(s => s.setAthleteId)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPw, setShowPw] = useState(false)
@@ -60,8 +64,13 @@ export function SignInPage() {
 
       setAuthenticated(true)
       setAccessToken(res.accessToken)
+      setAccessTokenInLocalStorage(res.accessToken)
+      
+      setUserId(user_id)
+    
       if (athlete_id) {
         navigate('/profile/' + athlete_id)
+        setAthleteId(athlete_id)
       } else if (onboarding_step === 0) {
         sessionStorage.setItem('sl_user_id', user_id)
         navigate('/register', { state: { step: 2 } })
