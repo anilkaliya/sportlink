@@ -113,10 +113,17 @@ export const connectionRoutes = new Elysia({ prefix: '/connections' })
     return { data }
   })
 
-  .get('/status', async ({ headers }) => {
+  .get('/status', async ({ headers, query, set }) => {
     const { userId } = extractUser(headers)
-    const data = await service.getPendingRequests(userId)
+    const targetUserId = query.user_id
+    if (!targetUserId) {
+      set.status = 400
+      return validationError('user_id query parameter is required')
+    }
+    const data = await service.getConnectionStatus(userId, targetUserId)
     return { data }
+  }, {
+    query: t.Object({ user_id: t.String() }),
   })
 
   // GET /connections/:id/suggestions — suggested athletes to connect with

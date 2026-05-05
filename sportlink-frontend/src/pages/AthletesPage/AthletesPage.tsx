@@ -54,7 +54,7 @@ export function AthletesPage() {
               key={athlete.athlete_id}
               athlete={athlete}
               currentUserId={currentUserId ?? ''}
-              sportName={athlete.primary_sport_id ? sportMap.get(athlete.primary_sport_id) : undefined}
+              sportName={athlete.sport_name ?? (athlete.primary_sport_id ? sportMap.get(athlete.primary_sport_id) : undefined)}
             />
           ))}
         </div>

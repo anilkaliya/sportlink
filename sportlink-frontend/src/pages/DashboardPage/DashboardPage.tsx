@@ -51,44 +51,68 @@ export function DashboardPage() {
     enabled: !!athleteId,
   })
 
+  const connectionRequestsQuery = useQuery({
+    queryKey: ['connection-requests'],
+    queryFn: () => connectionsApi.listRequests(),
+  })
+
   const profileStrength = profileStatusQuery.data
     ? parseInt(profileStatusQuery.data.completeness, 10) || 0
     : 0
 
+  const incomingRequests = connectionRequestsQuery.data?.data?.incoming ?? []
+
   return (
     <div className={styles.page}>
       <div className={styles.main}>
-        <WelcomeBanner
-          name={MOCK_USER.name}
-          location={MOCK_USER.location}
-          sport={MOCK_USER.sport}
-          profileStrength={profileStrength}
-          photoUrl={MOCK_USER.photoUrl}
-        />
-        <PerformanceSnapshot
-          yearsActive={MOCK_PERFORMANCE.yearsActive}
-          activeSince={MOCK_PERFORMANCE.activeSince}
-          goldMedals={MOCK_PERFORMANCE.goldMedals}
-          timePb={MOCK_PERFORMANCE.timePb}
-          timePbEvent={MOCK_PERFORMANCE.timePbEvent}
-          distancePb={MOCK_PERFORMANCE.distancePb}
-          distancePbEvent={MOCK_PERFORMANCE.distancePbEvent}
-          nationalTitles={MOCK_PERFORMANCE.nationalTitles}
-        />
-        <SuggestedAthletes
-          athletes={suggestionsQuery.data?.suggestions ?? []}
-          isLoading={suggestionsQuery.isLoading}
-        />
-        <RecentActivity />
+        <div className={styles.welcomeSection}>
+          <WelcomeBanner
+            name={MOCK_USER.name}
+            location={MOCK_USER.location}
+            sport={MOCK_USER.sport}
+            profileStrength={profileStrength}
+            photoUrl={MOCK_USER.photoUrl}
+          />
+        </div>
+        <div className={styles.performanceSection}>
+          <PerformanceSnapshot
+            yearsActive={MOCK_PERFORMANCE.yearsActive}
+            activeSince={MOCK_PERFORMANCE.activeSince}
+            goldMedals={MOCK_PERFORMANCE.goldMedals}
+            timePb={MOCK_PERFORMANCE.timePb}
+            timePbEvent={MOCK_PERFORMANCE.timePbEvent}
+            distancePb={MOCK_PERFORMANCE.distancePb}
+            distancePbEvent={MOCK_PERFORMANCE.distancePbEvent}
+            nationalTitles={MOCK_PERFORMANCE.nationalTitles}
+          />
+        </div>
+        <div className={styles.suggestedSection}>
+          <SuggestedAthletes
+            athletes={suggestionsQuery.data?.suggestions ?? []}
+            isLoading={suggestionsQuery.isLoading}
+          />
+        </div>
+        <div className={styles.activitySection}>
+          <RecentActivity />
+        </div>
       </div>
       <div className={styles.sidebar}>
-        <PendingActions
-          actions={pendingActionsQuery.data?.actions ?? []}
-          profileStats={pendingActionsQuery.data?.profile_stats ?? ''}
-          isLoading={pendingActionsQuery.isLoading}
-        />
-        <ConnectionRequests />
-        <Opportunities />
+        <div className={styles.connectionRequestsSection}>
+          <ConnectionRequests
+            requests={incomingRequests}
+            isLoading={connectionRequestsQuery.isLoading}
+          />
+        </div>
+        <div className={styles.pendingSection}>
+          <PendingActions
+            actions={pendingActionsQuery.data?.actions ?? []}
+            profileStats={pendingActionsQuery.data?.profile_stats ?? ''}
+            isLoading={pendingActionsQuery.isLoading}
+          />
+        </div>
+        <div className={styles.opportunitiesSection}>
+          <Opportunities />
+        </div>
       </div>
     </div>
   )

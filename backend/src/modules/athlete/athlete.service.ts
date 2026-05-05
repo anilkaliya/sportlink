@@ -8,7 +8,18 @@ import type {
 import { incrementOnboardingStep, setOnboardingComplete } from '../users/user.service'
 
 export async function getAllAthletes() {
-  return db.selectFrom('athlete_profiles').selectAll().orderBy('created_at', 'desc').execute()
+  const rows = await db
+    .selectFrom('athlete_profiles')
+    .leftJoin('sports', 'sports.sport_id', 'athlete_profiles.primary_sport_id')
+    .selectAll('athlete_profiles')
+    .select('sports.sport_name')
+    .orderBy('athlete_profiles.created_at', 'desc')
+    .execute()
+
+  return rows.map(r => ({
+    ...r,
+    full_name: `${r.first_name} ${r.last_name}`,
+  }))
 }
 
 export async function createAthlete(data: CreateAthleteInput) {

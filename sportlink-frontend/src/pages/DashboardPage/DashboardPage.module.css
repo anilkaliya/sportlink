@@ -27,9 +27,18 @@
     padding: 20px 20px 40px;
   }
 
+  .main,
   .sidebar {
-    order: -1;
+    display: contents;
   }
+
+  .welcomeSection { order: 1; }
+  .performanceSection { order: 2; }
+  .connectionRequestsSection { order: 3; }
+  .pendingSection { order: 4; }
+  .opportunitiesSection { order: 5; }
+  .suggestedSection { order: 6; }
+  .activitySection { order: 7; }
 }
 
 @media (max-width: 480px) {

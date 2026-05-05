@@ -308,6 +308,44 @@ export async function getSuggestions(athleteId: string) {
   return scored.map(({ score: _score, ...rest }) => rest)
 }
 
+/** Get the connection status between the current user and a target user. */
+export async function getConnectionStatus(userId: string, targetUserId: string) {
+  // Check if already connected
+  const [a, b] = orderedPair(userId, targetUserId)
+  const connection = await db
+    .selectFrom('connections')
+    .selectAll()
+    .where('user_id_a', '=', a)
+    .where('user_id_b', '=', b)
+    .executeTakeFirst()
+
+  if (connection) return { status: 'connected' as const, request_id: null }
+
+  // Check for pending outgoing request (I sent to them)
+  const outgoing = await db
+    .selectFrom('connection_requests')
+    .selectAll()
+    .where('sender_id', '=', userId)
+    .where('receiver_id', '=', targetUserId)
+    .where('status', '=', 'pending')
+    .executeTakeFirst()
+
+  if (outgoing) return { status: 'pending_outgoing' as const, request_id: outgoing.request_id }
+
+  // Check for pending incoming request (they sent to me)
+  const incoming = await db
+    .selectFrom('connection_requests')
+    .selectAll()
+    .where('sender_id', '=', targetUserId)
+    .where('receiver_id', '=', userId)
+    .where('status', '=', 'pending')
+    .executeTakeFirst()
+
+  if (incoming) return { status: 'pending_incoming' as const, request_id: incoming.request_id }
+
+  return { status: 'none' as const, request_id: null }
+}
+
 /** Pending requests involving the user (sent or received). */
 export async function getPendingRequests(userId: string) {
   const rows = await db

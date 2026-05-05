@@ -83,6 +83,7 @@ export interface AthleteListItem {
   full_name: string
   profile_photo_url: string | null
   primary_sport_id: string | null
+  sport_name: string | null
   city: string | null
   state: string | null
   bio: string | null
