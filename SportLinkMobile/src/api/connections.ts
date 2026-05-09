@@ -29,7 +29,17 @@ export interface ConnectionRequestsResponse {
   }
 }
 
+export interface ConnectedAthlete {
+  user_name: string
+  athlete_id: string
+  location: string
+  primary_sport: string
+}
+
 export const connectionsApi = {
+  getConnections: () =>
+    apiCall<ConnectedAthlete[]>('/connections'),
+
   getStatus: (targetUserId: string) =>
     apiCall<ConnectionStatusResponse>(`/connections/status?user_id=${targetUserId}`),
 

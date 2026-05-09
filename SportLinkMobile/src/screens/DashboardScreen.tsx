@@ -1,6 +1,7 @@
 import React from 'react'
-import { ScrollView, StyleSheet } from 'react-native'
+import { ScrollView, StyleSheet, TouchableOpacity, View, Text } from 'react-native'
 import { useQuery } from '@tanstack/react-query'
+import { useNavigation } from '@react-navigation/native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useAthleteStore } from '../stores/athleteStore'
 import { connectionsApi } from '../api/connections'
@@ -12,7 +13,8 @@ import { RecentActivity } from '../components/Dashboard/RecentActivity'
 import { PendingActions } from '../components/Dashboard/PendingActions'
 import { ConnectionRequests } from '../components/Dashboard/ConnectionRequests'
 import { Opportunities } from '../components/Dashboard/Opportunities'
-import { colors, spacing } from '../theme'
+import { Card } from '../components/ui/Card'
+import { colors, spacing, fontSize } from '../theme'
 
 const MOCK_USER = {
   name: 'Anil Kumar',
@@ -33,6 +35,7 @@ const MOCK_PERFORMANCE = {
 }
 
 export function DashboardScreen() {
+  const navigation = useNavigation<any>()
   const athleteId = useAthleteStore(s => s.athlete_id)
 
   const suggestionsQuery = useQuery({
@@ -88,6 +91,18 @@ export function DashboardScreen() {
           requests={incomingRequests}
           isLoading={connectionRequestsQuery.isLoading}
         />
+        <Card>
+          <TouchableOpacity
+            style={styles.connectionsLink}
+            onPress={() => navigation.navigate('Connections')}
+          >
+            <View>
+              <Text style={styles.connectionsTitle}>🔗 My Connections</Text>
+              <Text style={styles.connectionsSubtitle}>View all your connected athletes</Text>
+            </View>
+            <Text style={styles.connectionsArrow}>›</Text>
+          </TouchableOpacity>
+        </Card>
         <PendingActions
           actions={pendingActionsQuery.data?.actions ?? []}
           profileStats={pendingActionsQuery.data?.profile_stats ?? ''}
@@ -116,5 +131,25 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     gap: spacing.lg,
     paddingBottom: spacing.xxxl,
+  },
+  connectionsLink: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  connectionsTitle: {
+    fontSize: fontSize.md,
+    fontWeight: '700',
+    color: colors.text,
+  },
+  connectionsSubtitle: {
+    fontSize: fontSize.sm,
+    color: colors.muted,
+    marginTop: 2,
+  },
+  connectionsArrow: {
+    fontSize: 28,
+    color: colors.accent,
+    fontWeight: '600',
   },
 })

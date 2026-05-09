@@ -13,6 +13,7 @@ export type AuthStackParamList = {
 export type MainTabParamList = {
   Dashboard: undefined
   Athletes: undefined
+  Connections: undefined
   Requests: undefined
   ProfileTab: NavigatorScreenParams<ProfileStackParamList>
 }

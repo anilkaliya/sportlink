@@ -1,3 +1,4 @@
+import { sql } from 'kysely'
 import { db } from '../../db/connection'
 import { generateId } from '../../shared/id'
 
@@ -162,12 +163,28 @@ export async function cancelRequest(requestId: string, actingUserId: string) {
 export async function getConnections(userId: string) {
   return db
     .selectFrom('connections')
-    .selectAll()
-    .where(eb => eb.or([
-      eb('user_id_a', '=', userId),
-      eb('user_id_b', '=', userId),
-    ]))
-    .orderBy('created_at', 'desc')
+    .innerJoin('athlete_profiles', (join) =>
+      join.on((eb) =>
+        eb.or([
+          eb.and([
+            eb('connections.user_id_a', '=', userId),
+            eb('athlete_profiles.user_id', '=', eb.ref('connections.user_id_b')),
+          ]),
+          eb.and([
+            eb('connections.user_id_b', '=', userId),
+            eb('athlete_profiles.user_id', '=', eb.ref('connections.user_id_a')),
+          ]),
+        ])
+      )
+    )
+    .leftJoin('sports', 'sports.sport_id', 'athlete_profiles.primary_sport_id')
+    .select([
+      sql<string>`athlete_profiles.first_name || ' ' || athlete_profiles.last_name`.as('user_name'),
+      'athlete_profiles.athlete_id',
+      sql<string>`COALESCE(athlete_profiles.city || ', ' || athlete_profiles.state, athlete_profiles.state, athlete_profiles.city, '')`.as('location'),
+      sql<string>`COALESCE(sports.sport_name, '')`.as('primary_sport'),
+    ])
+    .orderBy('connections.created_at', 'desc')
     .execute()
 }
 

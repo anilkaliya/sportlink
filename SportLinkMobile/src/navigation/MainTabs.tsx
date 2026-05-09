@@ -7,6 +7,7 @@ import { colors } from '../theme'
 import { useAthleteStore } from '../stores/athleteStore'
 import { DashboardScreen } from '../screens/DashboardScreen'
 import { AthletesScreen } from '../screens/AthletesScreen'
+import { ConnectionsScreen } from '../screens/ConnectionsScreen'
 import { RequestsScreen } from '../screens/RequestsScreen'
 import { ProfileScreen } from '../screens/ProfileScreen'
 
@@ -25,6 +26,7 @@ function TabIcon({ label, focused }: { label: string; focused: boolean }) {
   const icons: Record<string, string> = {
     Dashboard: '🏠',
     Athletes: '👥',
+    Connections: '🔗',
     Requests: '🤝',
     ProfileTab: '👤',
   }
@@ -82,6 +84,7 @@ export function MainTabs() {
     >
       <Tab.Screen name="Dashboard" component={DashboardScreen} options={{ tabBarLabel: 'Home' }} />
       <Tab.Screen name="Athletes" component={AthletesScreen} />
+      <Tab.Screen name="Connections" component={ConnectionsScreen} />
       <Tab.Screen name="Requests" component={RequestsScreen} />
       <Tab.Screen
         name="ProfileTab"
