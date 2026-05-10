@@ -1,10 +1,13 @@
-import React from 'react'
-import { View, Text, Image, StyleSheet } from 'react-native'
+import React, { useState } from 'react'
+import { View, Text, Image, StyleSheet, TouchableOpacity, Alert, ActivityIndicator } from 'react-native'
+import { launchImageLibrary } from 'react-native-image-picker'
 import type { AthleteProfile, PassportEntry } from '../../types/athlete'
 import { parseLanguages } from '../../types/athlete'
 import { deriveStats, formatPb } from '../../lib/stats'
 import { ConnectionButton } from '../ConnectionButton/ConnectionButton'
+import { athleteApi } from '../../api/athlete'
 import { useAuthStore } from '../../stores/authStore'
+import { useAthleteStore } from '../../stores/athleteStore'
 import { colors, spacing, fontSize } from '../../theme'
 
 interface Props {
@@ -23,9 +26,44 @@ function StatCell({ value, label, color }: { value: string; label: string; color
 
 export function ProfileHero({ profile, passport }: Props) {
   const currentUserId = useAuthStore(s => s.userId)
+  const accessToken = useAuthStore(s => s.accessToken)
+  const setProfilePhoto = useAthleteStore(s => s.setProfilePhoto)
+  const [uploading, setUploading] = useState(false)
   const stats = deriveStats(passport)
   const languages = parseLanguages(profile.languages)
   const headline = profile.bio?.split('—')[0]?.trim() ?? profile.bio ?? ''
+  const isOwner = currentUserId != null && currentUserId === profile.user_id
+
+  const photoUrl = profile.profile_photo_url
+    ? athleteApi.getPhotoUrl(profile.athlete_id)
+    : null
+
+  async function handlePickPhoto() {
+    const result = await launchImageLibrary({
+      mediaType: 'photo',
+      quality: 0.8,
+      maxWidth: 800,
+      maxHeight: 800,
+    })
+    if (result.didCancel || !result.assets?.[0]) return
+
+    const asset = result.assets[0]
+    if (!asset.uri) return
+
+    setUploading(true)
+    try {
+      const res = await athleteApi.uploadPhoto(profile.athlete_id, {
+        uri: asset.uri,
+        type: asset.type ?? 'image/jpeg',
+        fileName: asset.fileName ?? 'photo.jpg',
+      })
+      setProfilePhoto(res.data.profile_photo_url)
+    } catch (e: any) {
+      Alert.alert('Upload failed', e.message ?? 'Could not upload photo')
+    } finally {
+      setUploading(false)
+    }
+  }
 
   const pbSecLabel = stats.secondsPB ? `${stats.secondsPB.notes ?? '100m'} PB` : '100m PB'
   const pbMetLabel = stats.metersPB ? `${stats.metersPB.notes ?? 'LJ'} PB` : 'Distance PB'
@@ -35,13 +73,31 @@ export function ProfileHero({ profile, passport }: Props) {
       <View style={styles.cover} />
       <View style={styles.profileMain}>
         <View style={styles.profileTop}>
-          <View style={styles.avatar}>
-            {profile.profile_photo_url ? (
-              <Image source={{ uri: profile.profile_photo_url }} style={styles.avatarImg} />
+          <TouchableOpacity
+            style={styles.avatar}
+            onPress={isOwner ? handlePickPhoto : undefined}
+            disabled={!isOwner || uploading}
+            activeOpacity={isOwner ? 0.7 : 1}
+          >
+            {uploading ? (
+              <ActivityIndicator size="small" color={colors.accent} />
+            ) : photoUrl ? (
+              <Image
+                source={{
+                  uri: `${photoUrl}?t=${Date.now()}`,
+                  headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+                }}
+                style={styles.avatarImg}
+              />
             ) : (
               <Text style={styles.avatarEmoji}>🏃</Text>
             )}
-          </View>
+            {isOwner && !uploading && (
+              <View style={styles.cameraBadge}>
+                <Text style={styles.cameraIcon}>📷</Text>
+              </View>
+            )}
+          </TouchableOpacity>
           <View style={styles.profileInfo}>
             <Text style={styles.name}>{profile.full_name}</Text>
             {headline ? <Text style={styles.sport}>⚡ {headline}</Text> : null}
@@ -106,6 +162,22 @@ const styles = StyleSheet.create({
   },
   avatarEmoji: {
     fontSize: 32,
+  },
+  cameraBadge: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    backgroundColor: colors.accent,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: colors.surface,
+  },
+  cameraIcon: {
+    fontSize: 12,
   },
   profileInfo: {
     flex: 1,

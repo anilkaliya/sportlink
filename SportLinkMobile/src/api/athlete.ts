@@ -1,9 +1,15 @@
+import { Platform } from 'react-native'
 import { apiCall } from './client'
+import { useAuthStore } from '../stores/authStore'
 import type {
   AthleteFullProfile, PassportEntry, Skill, EducationEntry,
   CreatePassportEntryInput, CreateEducationInput, SkillCategory,
   AthleteListItem, AthleteFilters,
 } from '../types/athlete'
+
+const BASE_URL = Platform.OS === 'android'
+  ? 'http://192.168.0.108:3000/api'
+  : 'http://localhost:3000/api'
 
 export interface ProfileStatusResponse {
   completeness: string
@@ -91,4 +97,28 @@ export const athleteApi = {
 
   getProfileStatus: (athleteId: string) =>
     apiCall<ProfileStatusResponse>(`/athletes/${athleteId}/profile-status`),
+
+  uploadPhoto: async (athleteId: string, photo: { uri: string; type: string; fileName: string }) => {
+    const formData = new FormData()
+    formData.append('photo', {
+      uri: photo.uri,
+      type: photo.type,
+      name: photo.fileName,
+    } as any)
+
+    const token = useAuthStore.getState().accessToken
+    const res = await fetch(`${BASE_URL}/athletes/${athleteId}/photo`, {
+      method: 'POST',
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: formData,
+    })
+    const json = await res.json()
+    if (!res.ok) throw new Error(json?.message ?? 'Upload failed')
+    return json as { data: { profile_photo_url: string } }
+  },
+
+  getPhotoUrl: (athleteId: string) =>
+    `${BASE_URL}/athletes/${athleteId}/photo`,
 }

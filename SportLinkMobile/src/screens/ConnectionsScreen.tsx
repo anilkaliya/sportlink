@@ -62,7 +62,7 @@ export function ConnectionsScreen() {
       />
     )
 
-  const connections = data ?? []
+  const connections = data?.data ?? []
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>

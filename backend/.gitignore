@@ -5,3 +5,4 @@ sportlink.db-wal
 .env
 .env.*
 dist/
+uploads/

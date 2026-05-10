@@ -213,6 +213,35 @@ export const athleteRoutes = new Elysia({ prefix: '/athletes' })
     }),
   })
 
+  // POST /athletes/:id/photo — upload profile photo (multipart form: photo field)
+  .post('/:id/photo', async ({ params, body, set }) => {
+    const existing = await service.getAthleteById(params.id)
+    if (!existing) { set.status = 404; return notFound('Athlete') }
+    try {
+      const data = await service.uploadPhoto(params.id, body.photo)
+      return { data }
+    } catch (err: unknown) {
+      if (err instanceof Error && err.message === 'INVALID_TYPE') {
+        set.status = 400
+        return validationError('Only JPEG, PNG, and WebP images are allowed')
+      }
+      set.status = 500
+      return serverError('Photo upload failed')
+    }
+  }, {
+    params: t.Object({ id: t.String() }),
+    body: t.Object({ photo: t.File() }),
+  })
+
+  // GET /athletes/:id/photo — serve profile photo
+  .get('/:id/photo', async ({ params, set }) => {
+    const file = await service.getPhoto(params.id)
+    if (!file) { set.status = 404; return notFound('Photo') }
+    set.headers['content-type'] = file.type
+    set.headers['cache-control'] = 'public, max-age=3600'
+    return file
+  }, { params: t.Object({ id: t.String() }) })
+
   .get('/:id/profile-status', async ({ params, set }) => {
     const data = await service.getProfilePercent(params.id)
     if (!data) { set.status = 404; return notFound('Athlete') }

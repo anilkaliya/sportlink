@@ -51,3 +51,10 @@ const app = new Elysia()
   .listen(3000)
 
 console.log('Server running on http://localhost:3000')
+
+// Auto-seed test users in dev mode (runs after server is listening)
+if (process.env.NODE_ENV !== 'production') {
+  import('./db/seed')
+    .then(m => m.seed())
+    .catch(err => console.warn('Seed skipped:', err.message))
+}

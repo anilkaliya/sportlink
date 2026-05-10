@@ -2,6 +2,7 @@ import React from 'react'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { View, Text, StyleSheet } from 'react-native'
+import { CommonActions } from '@react-navigation/native'
 import type { MainTabParamList, ProfileStackParamList } from './types'
 import { colors } from '../theme'
 import { useAthleteStore } from '../stores/athleteStore'
@@ -94,10 +95,25 @@ export function MainTabs() {
           tabPress: (e) => {
             e.preventDefault()
             const athleteId = useAthleteStore.getState().athlete_id
-            navigation.navigate('ProfileTab', {
-              screen: 'Profile',
-              params: athleteId ? { id: athleteId } : undefined,
-            })
+            // Reset the stack so ProfileScreen remounts with the current user's ID
+            navigation.dispatch(
+              CommonActions.reset({
+                index: 0,
+                routes: [
+                  {
+                    name: 'ProfileTab',
+                    state: {
+                      routes: [
+                        {
+                          name: 'Profile',
+                          params: athleteId ? { id: athleteId } : undefined,
+                        },
+                      ],
+                    },
+                  },
+                ],
+              })
+            )
           },
         })}
       />

@@ -20,8 +20,8 @@ type RouteProps = ProfileStackScreenProps<'Profile'>['route']
 
 export function ProfileScreen() {
   const route = useRoute<RouteProps>()
-  const athleteIdFromStore = useAthleteStore(s => s.athlete_id)
-  const id = route.params?.id ?? athleteIdFromStore ?? ''
+  const ownAthleteId = useAthleteStore(s => s.athlete_id)
+  const id = route.params?.id ?? ownAthleteId ?? ''
 
   const setAthleteData = useAthleteStore(s => s.setAthleteData)
   const clearAthlete = useAthleteStore(s => s.clearAthlete)

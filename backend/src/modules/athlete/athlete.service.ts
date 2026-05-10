@@ -1,5 +1,8 @@
+import { join } from 'path'
 import { db } from '../../db/connection'
 import { generateId } from '../../shared/id'
+
+const UPLOADS_DIR = join(import.meta.dir, '../../../uploads/photos')
 import type { UpdateableAthleteProfile } from '../../db/schema'
 import type {
   CreateAthleteInput, UpdateAthleteInput,
@@ -283,4 +286,42 @@ export async function addEducation(athleteId: string, data: EducationInput) {
     })
     .returningAll()
     .executeTakeFirstOrThrow()
+}
+
+// ── Photo upload ─────────────────────────────────────────────────────────
+
+const ALLOWED_MIME: Record<string, string> = {
+  'image/jpeg': '.jpg',
+  'image/png': '.png',
+  'image/webp': '.webp',
+}
+
+export async function uploadPhoto(athleteId: string, file: File) {
+  const ext = ALLOWED_MIME[file.type]
+  if (!ext) throw new Error('INVALID_TYPE')
+
+  const filename = `${athleteId}${ext}`
+  const filepath = join(UPLOADS_DIR, filename)
+
+  await Bun.write(filepath, file)
+
+  const photoUrl = `/api/athletes/${athleteId}/photo`
+  await db.updateTable('athlete_profiles')
+    .set({ profile_photo_url: photoUrl, updated_at: new Date().toISOString() })
+    .where('athlete_id', '=', athleteId)
+    .execute()
+
+  return { profile_photo_url: photoUrl }
+}
+
+export async function getPhoto(athleteId: string) {
+  // Try each supported extension
+  for (const ext of ['.jpg', '.png', '.webp']) {
+    const filepath = join(UPLOADS_DIR, `${athleteId}${ext}`)
+    const file = Bun.file(filepath)
+    if (await file.exists()) {
+      return file
+    }
+  }
+  return null
 }

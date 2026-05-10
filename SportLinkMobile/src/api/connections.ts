@@ -38,7 +38,7 @@ export interface ConnectedAthlete {
 
 export const connectionsApi = {
   getConnections: () =>
-    apiCall<ConnectedAthlete[]>('/connections'),
+    apiCall<{ data: ConnectedAthlete[] }>('/connections'),
 
   getStatus: (targetUserId: string) =>
     apiCall<ConnectionStatusResponse>(`/connections/status?user_id=${targetUserId}`),

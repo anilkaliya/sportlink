@@ -29,8 +29,8 @@ function calcStrength(val: string): number {
   return score
 }
 
-const STRENGTH_LABEL = ['', 'Weak', 'Fair', 'Good', 'Strong']
-const STRENGTH_COLOR = ['', colors.regError, colors.gold, colors.regSuccess, colors.regSuccess]
+const STRENGTH_LABEL = ['Too short', 'Weak', 'Fair', 'Good', 'Strong']
+const STRENGTH_COLOR = [colors.regMuted, colors.regError, colors.gold, colors.regSuccess, colors.regSuccess]
 
 export function Step1Account({ data, onNext }: Props) {
   const [form, setForm] = useState<Step1Data>(data)
