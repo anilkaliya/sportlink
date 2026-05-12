@@ -10,12 +10,15 @@ import type {
 } from './athlete.types'
 import { incrementOnboardingStep, setOnboardingComplete } from '../users/user.service'
 
-export async function getAllAthletes() {
+export async function getAllAthletes(currentUserId: string) {
+  const excludedUserIds = new Set<string>([currentUserId])
+
   const rows = await db
     .selectFrom('athlete_profiles')
     .leftJoin('sports', 'sports.sport_id', 'athlete_profiles.primary_sport_id')
     .selectAll('athlete_profiles')
     .select('sports.sport_name')
+    .where('athlete_profiles.user_id', 'not in', [...excludedUserIds])
     .orderBy('athlete_profiles.created_at', 'desc')
     .execute()
 

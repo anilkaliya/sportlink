@@ -13,6 +13,7 @@ import {
   getAthleteIdFromStorage,
 } from './lib/auth'
 import { LoadingSpinner } from './components/ui/LoadingSpinner'
+import { wsManager } from './lib/websocket'
 
 if (__DEV__) {
   LogBox.ignoreLogs([])
@@ -46,6 +47,7 @@ function AppContent() {
           setUserId(userId)
           setAuthenticated(true)
           if (athleteId) setAthleteId(athleteId)
+          wsManager.connect()
         }
       } catch (err) {
         console.error('Failed to hydrate auth:', err)

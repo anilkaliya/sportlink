@@ -2,6 +2,7 @@ import { Migrator } from 'kysely'
 import { db } from './connection'
 import * as migration001 from './migrations/001_initial_schema'
 import * as migration002 from './migrations/002_seed_lookups'
+import * as migration003 from './migrations/003_messaging'
 
 
 export async function runMigrations(): Promise<void> {
@@ -11,7 +12,7 @@ export async function runMigrations(): Promise<void> {
       getMigrations: async () => ({
         '001_initial_schema': migration001,
         '002_seed_lookups': migration002,
-
+        '003_messaging': migration003,
       }),
     },
   })

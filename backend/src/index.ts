@@ -5,6 +5,8 @@ import { athleteRoutes } from './modules/athlete/athlete.routes'
 import { userRoutes } from './modules/users/user.routes'
 import { lookupRoutes } from './modules/lookups/lookups.routes'
 import { connectionRoutes } from './modules/connections/connections.routes'
+import { messagingRoutes } from './modules/messaging/messaging.routes'
+import { messagingWs } from './modules/messaging/messaging.ws'
 import { authGuard } from './shared/auth-guard'
 
 // Paths that do not require a valid access token
@@ -32,9 +34,10 @@ const app = new Elysia()
   .use(cors({
     origin: 'http://localhost:5174',
     allowedHeaders: ['Content-Type', 'Authorization'],
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     credentials: true,
   }))
+  .use(messagingWs)
   .group('/api', group => group
     .onBeforeHandle(({ request, headers, set }) => {
       const { pathname } = new URL(request.url)
@@ -45,6 +48,7 @@ const app = new Elysia()
     .use(userRoutes)
     .use(lookupRoutes)
     .use(connectionRoutes)
+    .use(messagingRoutes)
     .get('/health', () => ({ status: 'ok' }))
   )
 

@@ -54,13 +54,13 @@ export interface AddPassportPayload {
 
 function buildQuery(filters?: AthleteFilters): string {
   if (!filters) return ''
-  const params = new URLSearchParams()
-  if (filters.sport) params.set('sport', filters.sport)
-  if (filters.level) params.set('level', filters.level)
-  if (filters.city) params.set('city', filters.city)
-  if (filters.search) params.set('search', filters.search)
-  if (filters.page) params.set('page', String(filters.page))
-  const qs = params.toString()
+  const parts: string[] = []
+  if (filters.sport) parts.push(`sport=${encodeURIComponent(filters.sport)}`)
+  if (filters.level) parts.push(`level=${encodeURIComponent(filters.level)}`)
+  if (filters.city) parts.push(`city=${encodeURIComponent(filters.city)}`)
+  if (filters.search) parts.push(`search=${encodeURIComponent(filters.search)}`)
+  if (filters.page) parts.push(`page=${filters.page}`)
+  const qs = parts.join('&')
   return qs ? `?${qs}` : ''
 }
 

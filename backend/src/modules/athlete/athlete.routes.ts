@@ -1,13 +1,15 @@
 import { Elysia, t } from 'elysia'
 import * as service from './athlete.service'
+import { extractUser } from '../../shared/auth-guard'
 import { notFound, conflict, validationError, serverError } from '../../shared/errors'
 import type { CreateAthleteInput } from './athlete.types'
 
 export const athleteRoutes = new Elysia({ prefix: '/athletes' })
 
-  // GET /athletes — list all athletes
-  .get('', async () => {
-    const data = await service.getAllAthletes()
+  // GET /athletes — list all athletes (excludes self and already connected)
+  .get('', async ({ headers }) => {
+    const { userId } = extractUser(headers)
+    const data = await service.getAllAthletes(userId)
     return { data }
   })
 

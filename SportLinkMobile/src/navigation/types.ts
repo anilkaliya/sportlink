@@ -14,8 +14,15 @@ export type MainTabParamList = {
   Dashboard: undefined
   Athletes: undefined
   Connections: undefined
+  MessagesTab: NavigatorScreenParams<MessagesStackParamList>
   Requests: undefined
   ProfileTab: NavigatorScreenParams<ProfileStackParamList>
+}
+
+// Messages stack (nested in tab)
+export type MessagesStackParamList = {
+  Inbox: undefined
+  Chat: { conversationId: string }
 }
 
 // Profile stack (nested in tab)

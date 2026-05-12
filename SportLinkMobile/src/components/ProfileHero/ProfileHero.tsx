@@ -1,14 +1,16 @@
 import React, { useState } from 'react'
 import { View, Text, Image, StyleSheet, TouchableOpacity, Alert, ActivityIndicator } from 'react-native'
+import { useNavigation } from '@react-navigation/native'
 import { launchImageLibrary } from 'react-native-image-picker'
 import type { AthleteProfile, PassportEntry } from '../../types/athlete'
 import { parseLanguages } from '../../types/athlete'
 import { deriveStats, formatPb } from '../../lib/stats'
 import { ConnectionButton } from '../ConnectionButton/ConnectionButton'
 import { athleteApi } from '../../api/athlete'
+import { messagingApi } from '../../api/messaging'
 import { useAuthStore } from '../../stores/authStore'
 import { useAthleteStore } from '../../stores/athleteStore'
-import { colors, spacing, fontSize } from '../../theme'
+import { colors, spacing, fontSize, radii } from '../../theme'
 
 interface Props {
   profile: AthleteProfile
@@ -21,6 +23,32 @@ function StatCell({ value, label, color }: { value: string; label: string; color
       <Text style={[styles.statVal, { color }]}>{value}</Text>
       <Text style={styles.statLabel}>{label}</Text>
     </View>
+  )
+}
+
+function MessageButton({ targetUserId }: { targetUserId: string }) {
+  const navigation = useNavigation<any>()
+  const [loading, setLoading] = useState(false)
+
+  async function handleMessage() {
+    setLoading(true)
+    try {
+      const res = await messagingApi.createDirectConversation(targetUserId)
+      navigation.navigate('MessagesTab', {
+        screen: 'Chat',
+        params: { conversationId: res.data.conversation_id },
+      })
+    } catch (e: any) {
+      Alert.alert('Error', e.message ?? 'Could not start conversation')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <TouchableOpacity style={styles.messageBtn} onPress={handleMessage} disabled={loading}>
+      <Text style={styles.messageBtnText}>{loading ? '...' : '💬 Message'}</Text>
+    </TouchableOpacity>
   )
 }
 
@@ -109,6 +137,7 @@ export function ProfileHero({ profile, passport }: Props) {
         </View>
         <View style={styles.actions}>
           <ConnectionButton targetUserId={profile.user_id} currentUserId={currentUserId ?? ''} />
+          {!isOwner && <MessageButton targetUserId={profile.user_id} />}
         </View>
         <View style={styles.statsRow}>
           <StatCell value={`${stats.yearsActive}`} label="Years Active" color={colors.accent} />
@@ -201,6 +230,20 @@ const styles = StyleSheet.create({
   },
   actions: {
     marginTop: spacing.lg,
+    flexDirection: 'row',
+    gap: spacing.md,
+  },
+  messageBtn: {
+    flex: 1,
+    backgroundColor: colors.surface2,
+    borderRadius: radii.sm,
+    paddingVertical: spacing.sm,
+    alignItems: 'center',
+  },
+  messageBtnText: {
+    fontSize: fontSize.sm,
+    fontWeight: '600',
+    color: colors.text,
   },
   statsRow: {
     flexDirection: 'row',

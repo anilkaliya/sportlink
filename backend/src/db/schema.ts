@@ -97,6 +97,54 @@ interface AthleteSkillsTable {
   created_at: Generated<string>
 }
 
+// ── Messaging ─────────────────────────────────────────────────────────────
+
+interface ConversationsTable {
+  conversation_id: string
+  type: Generated<'direct' | 'group' | 'broadcast'>
+  title: string | null
+  dm_pair_hash: string | null
+  created_by: string
+  created_at: Generated<string>
+  updated_at: Generated<string>
+}
+
+interface ConversationParticipantsTable {
+  participant_id: string
+  conversation_id: string
+  user_id: string
+  role: Generated<'member' | 'admin' | 'owner'>
+  last_read_at: string | null
+  is_active: Generated<0 | 1>
+  joined_at: Generated<string>
+}
+
+interface MessagesTable {
+  message_id: string
+  conversation_id: string
+  sender_id: string
+  message_type: Generated<'text' | 'image' | 'video' | 'file' | 'system'>
+  content: string | null
+  reply_to_id: string | null
+  is_edited: Generated<0 | 1>
+  edited_at: string | null
+  is_deleted: Generated<0 | 1>
+  deleted_at: string | null
+  metadata: string | null
+  created_at: Generated<string>
+}
+
+interface MessageAttachmentsTable {
+  attachment_id: string
+  message_id: string
+  file_name: string
+  mime_type: string
+  size_bytes: number
+  data_uri: string
+  preview_uri: string | null
+  created_at: Generated<string>
+}
+
 // ── Connections ────────────────────────────────────────────────────────────
 
 interface ConnectionRequestsTable {
@@ -137,6 +185,10 @@ export interface Database {
   refresh_tokens: RefreshTokensTable
   connection_requests: ConnectionRequestsTable
   connections: ConnectionsTable
+  conversations: ConversationsTable
+  conversation_participants: ConversationParticipantsTable
+  messages: MessagesTable
+  message_attachments: MessageAttachmentsTable
 }
 
 // ── Per-table helper types ─────────────────────────────────────────────────
@@ -164,3 +216,15 @@ export type InsertableAthleteSkill = Insertable<AthleteSkillsTable>
 
 export type ConnectionRequestRow = Selectable<ConnectionRequestsTable>
 export type ConnectionRow = Selectable<ConnectionsTable>
+
+export type ConversationRow = Selectable<ConversationsTable>
+export type InsertableConversation = Insertable<ConversationsTable>
+
+export type ConversationParticipantRow = Selectable<ConversationParticipantsTable>
+export type InsertableConversationParticipant = Insertable<ConversationParticipantsTable>
+
+export type MessageRow = Selectable<MessagesTable>
+export type InsertableMessage = Insertable<MessagesTable>
+
+export type MessageAttachmentRow = Selectable<MessageAttachmentsTable>
+export type InsertableMessageAttachment = Insertable<MessageAttachmentsTable>

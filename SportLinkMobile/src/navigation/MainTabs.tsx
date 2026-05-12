@@ -3,17 +3,30 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { View, Text, StyleSheet } from 'react-native'
 import { CommonActions } from '@react-navigation/native'
-import type { MainTabParamList, ProfileStackParamList } from './types'
+import type { MainTabParamList, ProfileStackParamList, MessagesStackParamList } from './types'
 import { colors } from '../theme'
 import { useAthleteStore } from '../stores/athleteStore'
+import { useMessagingStore } from '../stores/messagingStore'
 import { DashboardScreen } from '../screens/DashboardScreen'
 import { AthletesScreen } from '../screens/AthletesScreen'
 import { ConnectionsScreen } from '../screens/ConnectionsScreen'
 import { RequestsScreen } from '../screens/RequestsScreen'
 import { ProfileScreen } from '../screens/ProfileScreen'
+import { InboxScreen } from '../screens/Messaging/InboxScreen'
+import { ChatScreen } from '../screens/Messaging/ChatScreen'
 
 const Tab = createBottomTabNavigator<MainTabParamList>()
 const ProfileStack = createNativeStackNavigator<ProfileStackParamList>()
+const MessagesStack = createNativeStackNavigator<MessagesStackParamList>()
+
+function MessagesStackNavigator() {
+  return (
+    <MessagesStack.Navigator screenOptions={{ headerShown: false }}>
+      <MessagesStack.Screen name="Inbox" component={InboxScreen} />
+      <MessagesStack.Screen name="Chat" component={ChatScreen} />
+    </MessagesStack.Navigator>
+  )
+}
 
 function ProfileStackNavigator() {
   return (
@@ -28,14 +41,22 @@ function TabIcon({ label, focused }: { label: string; focused: boolean }) {
     Dashboard: '🏠',
     Athletes: '👥',
     Connections: '🔗',
+    MessagesTab: '💬',
     Requests: '🤝',
     ProfileTab: '👤',
   }
+  const unread = useMessagingStore(s => s.totalUnread)
+
   return (
     <View style={[tabStyles.iconWrap, focused && tabStyles.iconWrapActive]}>
       <Text style={{ fontSize: 20 }}>
         {icons[label] ?? '📱'}
       </Text>
+      {label === 'MessagesTab' && unread > 0 && (
+        <View style={tabStyles.badge}>
+          <Text style={tabStyles.badgeText}>{unread > 9 ? '9+' : unread}</Text>
+        </View>
+      )}
     </View>
   )
 }
@@ -47,9 +68,27 @@ const tabStyles = StyleSheet.create({
     borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
+    position: 'relative',
   },
   iconWrapActive: {
     backgroundColor: '#dcfce7',
+  },
+  badge: {
+    position: 'absolute',
+    top: -4,
+    right: -6,
+    backgroundColor: '#dc2626',
+    borderRadius: 8,
+    minWidth: 16,
+    height: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 3,
+  },
+  badgeText: {
+    color: '#fff',
+    fontSize: 9,
+    fontWeight: '700',
   },
 })
 
@@ -86,6 +125,11 @@ export function MainTabs() {
       <Tab.Screen name="Dashboard" component={DashboardScreen} options={{ tabBarLabel: 'Home' }} />
       <Tab.Screen name="Athletes" component={AthletesScreen} />
       <Tab.Screen name="Connections" component={ConnectionsScreen} />
+      <Tab.Screen
+        name="MessagesTab"
+        component={MessagesStackNavigator}
+        options={{ tabBarLabel: 'Messages' }}
+      />
       <Tab.Screen name="Requests" component={RequestsScreen} />
       <Tab.Screen
         name="ProfileTab"
