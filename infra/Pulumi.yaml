@@ -1,0 +1,16 @@
+name: sportlink-infra
+runtime:
+  name: nodejs
+  options:
+    packagemanager: npm
+description: >-
+  Infrastructure for the SportLink backend: an EC2 host running the Dockerised
+  Bun/Elysia API behind Caddy, an S3 bucket for daily SQLite backups, and the
+  IAM instance role that lets the backup container write to S3 without static
+  keys.
+
+# Self-managed state backend (bucket already exists, not managed by this stack).
+# ?region= must match the bucket's region, else S3 returns a 301 redirect.
+# Run `pulumi login s3://pulumiinfrastate?region=ap-south-1` before the first command.
+backend:
+  url: s3://states-pulumi-infra?region=ap-south-1

@@ -1,0 +1,14 @@
+node_modules
+sportlink.db
+sportlink.db-shm
+sportlink.db-wal
+uploads
+.env
+.env.*
+dist
+.git
+.gitignore
+Dockerfile
+docker-compose.yml
+.dockerignore
+*.md

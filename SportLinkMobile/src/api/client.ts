@@ -4,7 +4,7 @@ import { navigationRef } from '../navigation/navigationRef'
 import { CommonActions } from '@react-navigation/native'
 
 const BASE_URL = Platform.OS === 'android'
-  ? 'http://192.168.0.108:3000/api'
+  ? 'http://192.168.0.106:3000/api'
   : 'http://localhost:3000/api'
 
 const AUTH_GUARD_MESSAGES = new Set([

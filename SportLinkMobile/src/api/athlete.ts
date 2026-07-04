@@ -8,7 +8,7 @@ import type {
 } from '../types/athlete'
 
 const BASE_URL = Platform.OS === 'android'
-  ? 'http://192.168.0.108:3000/api'
+  ? 'http://192.168.0.106:3000/api'
   : 'http://localhost:3000/api'
 
 export interface ProfileStatusResponse {

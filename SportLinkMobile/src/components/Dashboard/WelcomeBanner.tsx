@@ -1,5 +1,6 @@
 import React from 'react'
 import { View, Text, Image, StyleSheet } from 'react-native'
+import { useAuthStore } from '../../stores/authStore'
 import { colors, spacing, fontSize } from '../../theme'
 
 interface Props {
@@ -12,13 +13,20 @@ interface Props {
 
 export function WelcomeBanner({ name, location, sport, profileStrength, photoUrl }: Props) {
   const firstName = name.split(' ')[0]
+  const accessToken = useAuthStore(s => s.accessToken)
 
   return (
     <View style={styles.banner}>
       <View style={styles.content}>
         <View style={styles.avatar}>
           {photoUrl ? (
-            <Image source={{ uri: photoUrl }} style={styles.avatarImg} />
+            <Image
+              source={{
+                uri: photoUrl,
+                headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+              }}
+              style={styles.avatarImg}
+            />
           ) : (
             <Text style={styles.avatarEmoji}>🏃</Text>
           )}

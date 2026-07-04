@@ -46,16 +46,34 @@ export function ProfileScreen() {
 
   useEffect(() => () => { clearAthlete() }, [id, clearAthlete])
 
-  if (isLoading) return <LoadingSpinner />
-  if (isError) return <ErrorMessage message={error instanceof Error ? error.message : 'Failed to load profile'} />
-  if (!profile) return null
-
-  const isOwner = currentUserId != null && currentUserId === profile.user_id
-
   function handleSignOut() {
     userApi.logout().catch(() => {})
     clearAuth()
   }
+
+  // No athlete id available (e.g. session restored without it) — the query is
+  // disabled, so render an explicit empty state instead of a blank screen.
+  if (!id) {
+    return (
+      <SafeAreaView style={styles.safe} edges={['top']}>
+        <View style={styles.empty}>
+          <Text style={styles.emptyTitle}>Profile unavailable</Text>
+          <Text style={styles.emptyText}>
+            We couldn't find your athlete profile for this session. Sign in again to reload it.
+          </Text>
+          <TouchableOpacity style={styles.signOutBtn} onPress={handleSignOut}>
+            <Text style={styles.signOutText}>Sign Out</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    )
+  }
+
+  if (isLoading) return <LoadingSpinner />
+  if (isError) return <ErrorMessage message={error instanceof Error ? error.message : 'Failed to load profile'} />
+  if (!profile) return <LoadingSpinner />
+
+  const isOwner = currentUserId != null && currentUserId === profile.user_id
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -86,6 +104,24 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     gap: spacing.lg,
     paddingBottom: spacing.xxxl,
+  },
+  empty: {
+    flex: 1,
+    justifyContent: 'center',
+    padding: spacing.xl,
+    gap: spacing.md,
+  },
+  emptyTitle: {
+    fontSize: fontSize.xl,
+    fontWeight: '700',
+    color: colors.text,
+    textAlign: 'center',
+  },
+  emptyText: {
+    fontSize: fontSize.md,
+    color: colors.muted,
+    textAlign: 'center',
+    marginBottom: spacing.md,
   },
   signOutBtn: {
     backgroundColor: colors.surface,

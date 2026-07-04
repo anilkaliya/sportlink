@@ -3,7 +3,7 @@ import { useAuthStore } from '../stores/authStore'
 import type { WsClientEvent, WsServerEvent } from '../types/messaging'
 
 const WS_BASE = Platform.OS === 'android'
-  ? 'ws://192.168.0.108:3000'
+  ? 'ws://192.168.0.106:3000'
   : 'ws://localhost:3000'
 
 type EventHandler = (event: WsServerEvent) => void

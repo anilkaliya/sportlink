@@ -11,6 +11,8 @@ import {
   getAccessTokenFromStorage,
   getUserIdFromStorage,
   getAthleteIdFromStorage,
+  isAccessTokenValid,
+  clearAllAuthStorage,
 } from './lib/auth'
 import { LoadingSpinner } from './components/ui/LoadingSpinner'
 import { wsManager } from './lib/websocket'
@@ -42,12 +44,15 @@ function AppContent() {
         const userId = await getUserIdFromStorage()
         const athleteId = await getAthleteIdFromStorage()
 
-        if (token && userId) {
+        if (token && userId && isAccessTokenValid(token)) {
           setAccessToken(token)
           setUserId(userId)
           setAuthenticated(true)
           if (athleteId) setAthleteId(athleteId)
           wsManager.connect()
+        } else if (token) {
+          // Stale/expired session — don't trust it. Clear so we land on Sign In.
+          await clearAllAuthStorage()
         }
       } catch (err) {
         console.error('Failed to hydrate auth:', err)

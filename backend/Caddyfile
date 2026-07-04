@@ -1,0 +1,25 @@
+# Global options
+{
+	# Email used for the ACME account (Let's Encrypt) — certificate expiry
+	# notices and required for issuance/renewal.
+	email {$ACME_EMAIL}
+}
+
+# Public site block. Caddy automatically obtains and renews a TLS certificate
+# for {$DOMAIN} via the ACME HTTP/TLS-ALPN challenge (ports 80/443 must be open
+# on the EC2 security group), and redirects HTTP -> HTTPS.
+{$DOMAIN} {
+	encode zstd gzip
+
+	# reverse_proxy transparently upgrades WebSocket connections, so the
+	# /ws/messaging endpoint works without extra configuration.
+	reverse_proxy backend:3000 {
+		# Preserve the original client info for the app / logs.
+		header_up X-Real-IP {remote_host}
+	}
+
+	log {
+		output stdout
+		format console
+	}
+}

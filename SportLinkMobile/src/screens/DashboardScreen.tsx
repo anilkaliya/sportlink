@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { useAthleteStore } from '../stores/athleteStore'
 import { connectionsApi } from '../api/connections'
 import { athleteApi } from '../api/athlete'
+import { sportsApi } from '../api/sports'
 import { WelcomeBanner } from '../components/Dashboard/WelcomeBanner'
 import { PerformanceSnapshot } from '../components/Dashboard/PerformanceSnapshot'
 import { SuggestedAthletes } from '../components/Dashboard/SuggestedAthletes'
@@ -15,13 +16,6 @@ import { ConnectionRequests } from '../components/Dashboard/ConnectionRequests'
 import { Opportunities } from '../components/Dashboard/Opportunities'
 import { Card } from '../components/ui/Card'
 import { colors, spacing, fontSize } from '../theme'
-
-const MOCK_USER = {
-  name: 'Anil Kumar',
-  location: 'Bengaluru, Karnataka',
-  sport: 'Athletics',
-  photoUrl: null as string | null,
-}
 
 const MOCK_PERFORMANCE = {
   yearsActive: 4,
@@ -37,6 +31,18 @@ const MOCK_PERFORMANCE = {
 export function DashboardScreen() {
   const navigation = useNavigation<any>()
   const athleteId = useAthleteStore(s => s.athlete_id)
+
+  const profileQuery = useQuery({
+    queryKey: ['athlete', athleteId],
+    queryFn: () => athleteApi.getById(athleteId!),
+    enabled: !!athleteId,
+  })
+
+  const sportsQuery = useQuery({
+    queryKey: ['sports'],
+    queryFn: () => sportsApi.getSports(),
+    staleTime: Infinity,
+  })
 
   const suggestionsQuery = useQuery({
     queryKey: ['suggestions', athleteId],
@@ -67,15 +73,26 @@ export function DashboardScreen() {
 
   const incomingRequests = connectionRequestsQuery.data?.data?.incoming ?? []
 
+  const profile = profileQuery.data?.data
+  const userName = profile?.full_name || 'Athlete'
+  const userLocation = profile
+    ? [profile.city, profile.state].filter(Boolean).join(', ')
+    : ''
+  const userSport =
+    sportsQuery.data?.find(s => s.id === profile?.primary_sport_id)?.name ?? ''
+  const userPhotoUrl = profile?.profile_photo_url
+    ? athleteApi.getPhotoUrl(profile.athlete_id)
+    : null
+
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
         <WelcomeBanner
-          name={MOCK_USER.name}
-          location={MOCK_USER.location}
-          sport={MOCK_USER.sport}
+          name={userName}
+          location={userLocation}
+          sport={userSport}
           profileStrength={profileStrength}
-          photoUrl={MOCK_USER.photoUrl}
+          photoUrl={userPhotoUrl}
         />
         <PerformanceSnapshot
           yearsActive={MOCK_PERFORMANCE.yearsActive}

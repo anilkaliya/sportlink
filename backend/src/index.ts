@@ -22,6 +22,14 @@ const PUBLIC_PATHS = new Set([
 
 await runMigrations()
 
+// Allowed CORS origins — comma-separated list via env, or "*" to allow any.
+// Falls back to the local web dev origin when unset.
+const corsEnv = process.env['CORS_ORIGIN'] ?? 'http://localhost:5174'
+const corsOrigin: string | string[] | boolean =
+  corsEnv.trim() === '*'
+    ? true
+    : corsEnv.split(',').map(o => o.trim()).filter(Boolean)
+
 const app = new Elysia()
 
   .onRequest(({ request, set }) => {
@@ -32,7 +40,7 @@ const app = new Elysia()
     }
   })
   .use(cors({
-    origin: 'http://localhost:5174',
+    origin: corsOrigin,
     allowedHeaders: ['Content-Type', 'Authorization'],
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     credentials: true,

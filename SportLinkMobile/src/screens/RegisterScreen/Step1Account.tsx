@@ -4,6 +4,8 @@ import {
   ScrollView, KeyboardAvoidingView, Platform, StyleSheet,
 } from 'react-native'
 import { userApi } from '../../api/user'
+import { useAuthStore } from '../../stores/authStore'
+import { setAccessTokenInStorage, setUserIdInStorage } from '../../lib/auth'
 import { colors, spacing, fontSize } from '../../theme'
 
 export interface Step1Data {
@@ -33,6 +35,9 @@ const STRENGTH_LABEL = ['Too short', 'Weak', 'Fair', 'Good', 'Strong']
 const STRENGTH_COLOR = [colors.regMuted, colors.regError, colors.gold, colors.regSuccess, colors.regSuccess]
 
 export function Step1Account({ data, onNext }: Props) {
+  const setAccessToken = useAuthStore(s => s.setAccessToken)
+  const setUserId = useAuthStore(s => s.setUserId)
+
   const [form, setForm] = useState<Step1Data>(data)
   const [showPw, setShowPw] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -49,7 +54,18 @@ export function Step1Account({ data, onNext }: Props) {
         mobile_number: form.phone,
         password: form.password,
       })
-      onNext({ ...form, userId: res.data.user_id })
+
+      // Register doesn't return a token. Log in immediately so the
+      // authenticated calls in steps 2 and 3 carry a Bearer token. We set the
+      // token but NOT isAuthenticated, so the wizard stays in the Auth stack
+      // until step 3 completes the profile.
+      const loginRes = await userApi.login({ email: form.email, password: form.password })
+      setAccessToken(loginRes.accessToken)
+      setUserId(loginRes.data.user_id)
+      await setAccessTokenInStorage(loginRes.accessToken)
+      await setUserIdInStorage(loginRes.data.user_id)
+
+      onNext({ ...form, userId: loginRes.data.user_id })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Registration failed.')
     } finally {

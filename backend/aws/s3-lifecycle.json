@@ -1,0 +1,16 @@
+{
+  "Rules": [
+    {
+      "ID": "expire-sportlink-backups-30d",
+      "Filter": { "Prefix": "sportlink/backups/" },
+      "Status": "Enabled",
+      "Transitions": [
+        {
+          "Days": 7,
+          "StorageClass": "STANDARD_IA"
+        }
+      ],
+      "Expiration": { "Days": 30 }
+    }
+  ]
+}

@@ -1,0 +1,84 @@
+services:
+  # ---- Backend API (Bun + Elysia) -------------------------------------------
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: sportlink-backend:latest
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      DB_PATH: /app/data/sportlink.db
+      # Comma-separated list of allowed CORS origins, or "*" for any.
+      CORS_ORIGIN: ${CORS_ORIGIN:-*}
+    volumes:
+      # SQLite DB (+ WAL/SHM sidecar files) — survives container recreation.
+      - sportlink_data:/app/data
+      # Uploaded athlete photos — survives container recreation.
+      - sportlink_uploads:/app/uploads
+    # No host port published: only Caddy (same network) can reach the backend.
+    expose:
+      - "3000"
+    networks:
+      - web
+
+  # ---- Caddy reverse proxy + automatic HTTPS --------------------------------
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"   # HTTP/3
+    environment:
+      # Set these in a .env file next to this compose file (see .env.example).
+      DOMAIN: ${DOMAIN}
+      ACME_EMAIL: ${ACME_EMAIL}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      # Persist issued certificates + ACME account so redeploys don't re-issue
+      # (and don't hit Let's Encrypt rate limits).
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - web
+
+  # ---- Daily SQLite -> S3 backup (cron) -------------------------------------
+  backup:
+    build:
+      context: ./backup
+      dockerfile: Dockerfile
+    image: sportlink-backup:latest
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      DB_PATH: /app/data/sportlink.db
+      S3_BUCKET: ${BACKUP_S3_BUCKET}
+      S3_PREFIX: ${BACKUP_S3_PREFIX:-sportlink/backups}
+      # Cron expression — default 03:00 daily. TZ controls its timezone.
+      CRON_SCHEDULE: ${BACKUP_CRON_SCHEDULE:-0 3 * * *}
+      TZ: ${BACKUP_TZ:-UTC}
+      # Run a backup once on container start (handy to verify creds/bucket).
+      RUN_ON_START: ${BACKUP_RUN_ON_START:-false}
+      # Prefer an EC2 instance IAM role; otherwise set these in .env.
+      AWS_REGION: ${AWS_REGION:-}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+    volumes:
+      # Read the same DB volume the backend writes to (rw needed for WAL locks).
+      - sportlink_data:/app/data
+    networks:
+      - web
+
+networks:
+  web:
+    driver: bridge
+
+volumes:
+  sportlink_data:
+  sportlink_uploads:
+  caddy_data:
+  caddy_config:
