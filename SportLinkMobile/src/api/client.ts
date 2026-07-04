@@ -3,9 +3,15 @@ import { useAuthStore } from '../stores/authStore'
 import { navigationRef } from '../navigation/navigationRef'
 import { CommonActions } from '@react-navigation/native'
 
-const BASE_URL = Platform.OS === 'android'
-  ? 'http://192.168.0.106:3000/api'
-  : 'http://localhost:3000/api'
+// Production API (served by Caddy over HTTPS on the EC2 host).
+const PROD_BASE_URL = 'https://sportlink.theplanetzed.com/api'
+
+// In dev (Metro), hit the local backend; release builds use the domain.
+const BASE_URL = __DEV__
+  ? (Platform.OS === 'android'
+      ? 'http://192.168.0.106:3000/api'
+      : 'http://localhost:3000/api')
+  : PROD_BASE_URL
 
 const AUTH_GUARD_MESSAGES = new Set([
   'Missing authorization header',

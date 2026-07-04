@@ -2,9 +2,15 @@ import { Platform, AppState } from 'react-native'
 import { useAuthStore } from '../stores/authStore'
 import type { WsClientEvent, WsServerEvent } from '../types/messaging'
 
-const WS_BASE = Platform.OS === 'android'
-  ? 'ws://192.168.0.106:3000'
-  : 'ws://localhost:3000'
+// Production WebSocket (Caddy terminates TLS and proxies /ws/messaging).
+const PROD_WS_BASE = 'wss://sportlink.theplanetzed.com'
+
+// In dev (Metro), hit the local backend; release builds use the domain.
+const WS_BASE = __DEV__
+  ? (Platform.OS === 'android'
+      ? 'ws://192.168.0.106:3000'
+      : 'ws://localhost:3000')
+  : PROD_WS_BASE
 
 type EventHandler = (event: WsServerEvent) => void
 
